@@ -168,10 +168,13 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginStaff: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginAdmin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  initAuth: () => Promise<void>;
+  initAuth: (force?: boolean) => Promise<void>;
   refreshUser: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
 }

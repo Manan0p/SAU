@@ -1,6 +1,9 @@
 import { supabase } from "./supabase";
 import type { User, UserRole } from "@/types";
 
+export const STAFF_ROLES: UserRole[] = ["doctor", "pharmacy", "insurance", "medical_center"];
+export const ADMIN_ROLES: UserRole[] = ["admin"];
+
 /** Maps a raw Supabase profile row to our User type */
 function mapProfile(profile: Record<string, unknown>, email: string): User {
   return {
@@ -46,6 +49,37 @@ export async function loginUser(
   } catch (error: unknown) {
     return { success: false, error: (error as Error).message ?? "Unexpected error." };
   }
+}
+
+// ─── Staff Login ─────────────────────────────────────────────
+export async function loginStaffUser(
+  email: string,
+  password: string
+): Promise<{ success: true; user: User } | { success: false; error: string }> {
+  const result = await loginUser(email, password);
+  if (!result.success) return result;
+
+  const hasStaffRole = STAFF_ROLES.some((r) => result.user.roles.includes(r));
+  if (!hasStaffRole) {
+    await supabase.auth.signOut();
+    return { success: false, error: "You don't have staff access. Contact your administrator." };
+  }
+  return result;
+}
+
+// ─── Admin Login ─────────────────────────────────────────────
+export async function loginAdminUser(
+  email: string,
+  password: string
+): Promise<{ success: true; user: User } | { success: false; error: string }> {
+  const result = await loginUser(email, password);
+  if (!result.success) return result;
+
+  if (!result.user.roles.includes("admin")) {
+    await supabase.auth.signOut();
+    return { success: false, error: "You don't have admin access." };
+  }
+  return result;
 }
 
 // ─── Google OAuth ──────────────────────────────────────────────

@@ -19,6 +19,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-toast": "^1.2.15",
     "@react-google-maps/api": "^2.20.8",
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
     "@types/google.maps": "^3.58.1",
     "class-variance-authority": "^0.7.1",

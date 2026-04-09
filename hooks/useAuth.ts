@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { loginUser, loginWithGoogle, loadSession, clearSession } from "@/lib/auth";
+import { loginUser, loginStaffUser, loginAdminUser, loginWithGoogle, loadSession, clearSession } from "@/lib/auth";
 import type { AuthState, UserRole } from "@/types";
 
 export const useAuth = create<AuthState>((set, get) => ({
@@ -11,8 +11,8 @@ export const useAuth = create<AuthState>((set, get) => ({
   isInitialized: false,
 
   /** Rehydrate session from Supabase on mount */
-  initAuth: async () => {
-    if (get().isInitialized) return;
+  initAuth: async (force = false) => {
+    if (get().isInitialized && !force) return;
     set({ isLoading: true });
     const user = await loadSession();
     set({ user, isAuthenticated: !!user, isLoading: false, isInitialized: true });
@@ -24,12 +24,36 @@ export const useAuth = create<AuthState>((set, get) => ({
     set({ user, isAuthenticated: !!user });
   },
 
-  /** Email + password login */
+  /** Student email + password login */
   login: async (email, password) => {
     set({ isLoading: true });
     const result = await loginUser(email, password);
     if (result.success) {
-      set({ user: result.user, isAuthenticated: true, isLoading: false });
+      set({ user: result.user, isAuthenticated: true, isLoading: false, isInitialized: true });
+      return { success: true };
+    }
+    set({ isLoading: false });
+    return { success: false, error: result.error };
+  },
+
+  /** Staff login — validates staff roles */
+  loginStaff: async (email, password) => {
+    set({ isLoading: true });
+    const result = await loginStaffUser(email, password);
+    if (result.success) {
+      set({ user: result.user, isAuthenticated: true, isLoading: false, isInitialized: true });
+      return { success: true };
+    }
+    set({ isLoading: false });
+    return { success: false, error: result.error };
+  },
+
+  /** Admin login — validates admin role */
+  loginAdmin: async (email, password) => {
+    set({ isLoading: true });
+    const result = await loginAdminUser(email, password);
+    if (result.success) {
+      set({ user: result.user, isAuthenticated: true, isLoading: false, isInitialized: true });
       return { success: true };
     }
     set({ isLoading: false });
@@ -44,7 +68,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   /** Sign out */
   logout: async () => {
     await clearSession();
-    set({ user: null, isAuthenticated: false });
+    set({ user: null, isAuthenticated: false, isInitialized: false });
   },
 
   /** Convenience: check if current user has a specific role */

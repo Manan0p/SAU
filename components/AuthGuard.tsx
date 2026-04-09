@@ -3,10 +3,18 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import type { UserRole } from "@/types";
 
-/** Wraps protected pages — redirects to /login if not authenticated */
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, isInitialized, initAuth } = useAuth();
+interface AuthGuardProps {
+  children: React.ReactNode;
+  /** If provided, user must have at least one of these roles */
+  requiredRoles?: UserRole[];
+  /** Where to redirect if not authenticated */
+  loginPath?: string;
+}
+
+export default function AuthGuard({ children, requiredRoles, loginPath = "/login" }: AuthGuardProps) {
+  const { isAuthenticated, isLoading, isInitialized, initAuth, hasRole } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -16,12 +24,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [initAuth, isInitialized]);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace("/login");
+    if (!isLoading && isInitialized) {
+      if (!isAuthenticated) {
+        router.replace(loginPath);
+      } else if (requiredRoles && !requiredRoles.some((r) => hasRole(r))) {
+        // Authenticated but wrong role
+        router.replace(loginPath);
+      }
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, isInitialized, router, requiredRoles, hasRole, loginPath]);
 
-  if (isLoading) {
+  if (isLoading || !isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="flex flex-col items-center gap-4">
@@ -33,6 +46,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) return null;
+  if (requiredRoles && !requiredRoles.some((r) => hasRole(r))) return null;
 
   return <>{children}</>;
 }
