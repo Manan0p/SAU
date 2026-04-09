@@ -83,8 +83,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
-  initAuth: () => void;
+  logout: () => Promise<void>;
+  initAuth: () => Promise<void>;
 }
 
 // ─────────────────────────────────────────────

@@ -1,49 +1,75 @@
-import { MOCK_USERS } from "./mockData";
+import { supabase } from "./supabase";
 import type { User } from "@/types";
 
-const AUTH_KEY = "uniwell_auth";
-
-/** Simulate login — checks email + password against mock users */
-export function loginUser(
+export async function loginUser(
   email: string,
   password: string
-): { success: true; user: User } | { success: false; error: string } {
-  const match = MOCK_USERS.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-  );
+): Promise<{ success: true; user: User } | { success: false; error: string }> {
+  try {
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (!match) {
-    return { success: false, error: "Invalid email or password." };
+    if (authError || !authData.user) {
+      return { success: false, error: authError?.message || "Login failed." };
+    }
+
+    // Fetch profile
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", authData.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return { success: false, error: "Profile not found." };
+    }
+
+    const user: User = {
+      id: profile.id,
+      email: authData.user.email!,
+      name: profile.name,
+      role: profile.role,
+      studentId: profile.student_id,
+      avatar: profile.avatar,
+    };
+
+    return { success: true, user };
+  } catch (error: any) {
+    return { success: false, error: error.message || "An unexpected error occurred." };
   }
-
-  // Strip password before storing
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password: _, ...user } = match;
-  saveSession(user);
-  return { success: true, user };
 }
 
-/** Save user session to localStorage */
-export function saveSession(user: User): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-  }
-}
-
-/** Load user session from localStorage */
-export function loadSession(): User | null {
+export async function loadSession(): Promise<User | null> {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(AUTH_KEY);
-    return raw ? (JSON.parse(raw) as User) : null;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return null;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+
+    if (!profile) return null;
+
+    return {
+      id: profile.id,
+      email: session.user.email!,
+      name: profile.name,
+      role: profile.role,
+      studentId: profile.student_id,
+      avatar: profile.avatar,
+    };
   } catch {
     return null;
   }
 }
 
-/** Clear session on logout */
-export function clearSession(): void {
+export async function clearSession(): Promise<void> {
   if (typeof window !== "undefined") {
-    localStorage.removeItem(AUTH_KEY);
+    await supabase.auth.signOut();
   }
 }

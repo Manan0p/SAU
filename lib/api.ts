@@ -1,90 +1,95 @@
+import { supabase } from "./supabase";
 import type { Appointment, Claim } from "@/types";
-import { generateId } from "./utils";
-
-// ─── Storage Keys ───────────────────────────────────────────
-const APPOINTMENTS_KEY = "uniwell_appointments";
-const CLAIMS_KEY = "uniwell_claims";
 
 // ─── Appointments ────────────────────────────────────────────
 
-function readAppointments(): Appointment[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(APPOINTMENTS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
+export async function getAppointments(userId: string): Promise<Appointment[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("*")
+    .eq("userId", userId)
+    .order("timeSlot", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching appointments:", error);
     return [];
   }
+  return data as Appointment[];
 }
 
-function writeAppointments(data: Appointment[]): void {
-  localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(data));
-}
-
-export function getAppointments(userId: string): Appointment[] {
-  return readAppointments().filter((a) => a.userId === userId);
-}
-
-export function createAppointment(
+export async function createAppointment(
   data: Omit<Appointment, "id">
-): { success: true; appointment: Appointment } | { success: false; error: string } {
-  const all = readAppointments();
+): Promise<{ success: true; appointment: Appointment } | { success: false; error: string }> {
+  // Prevent double booking
+  const { data: existing } = await supabase
+    .from("appointments")
+    .select("id")
+    .eq("userId", data.userId)
+    .eq("doctorId", data.doctorId)
+    .eq("timeSlot", data.timeSlot)
+    .eq("status", "booked")
+    .maybeSingle();
 
-  // Prevent double booking the same slot with the same doctor
-  const duplicate = all.find(
-    (a) =>
-      a.userId === data.userId &&
-      a.doctorId === data.doctorId &&
-      a.timeSlot === data.timeSlot &&
-      a.status === "booked"
-  );
-
-  if (duplicate) {
+  if (existing) {
     return { success: false, error: "You already have this slot booked." };
   }
 
-  const appointment: Appointment = { id: "apt_" + generateId(), ...data };
-  writeAppointments([...all, appointment]);
-  return { success: true, appointment };
+  const { data: newAppointment, error } = await supabase
+    .from("appointments")
+    .insert([{
+      userId: data.userId,
+      doctorId: data.doctorId,
+      doctorName: data.doctorName,
+      specialty: data.specialty,
+      timeSlot: data.timeSlot,
+      date: data.date,
+      status: "booked",
+      notes: data.notes
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, appointment: newAppointment as Appointment };
 }
 
-export function cancelAppointment(
+export async function cancelAppointment(
   appointmentId: string,
   userId: string
-): { success: boolean; error?: string } {
-  const all = readAppointments();
-  const idx = all.findIndex((a) => a.id === appointmentId && a.userId === userId);
-  if (idx === -1) return { success: false, error: "Appointment not found." };
-  all[idx].status = "cancelled";
-  writeAppointments(all);
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase
+    .from("appointments")
+    .update({ status: "cancelled" })
+    .match({ id: appointmentId, userId: userId });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
   return { success: true };
 }
 
 // ─── Insurance Claims ─────────────────────────────────────────
 
-function readClaims(): Claim[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(CLAIMS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
+export async function getClaims(userId: string): Promise<Claim[]> {
+  const { data, error } = await supabase
+    .from("claims")
+    .select("*")
+    .eq("userId", userId)
+    .order("createdAt", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching claims:", error);
     return [];
   }
+  return data as Claim[];
 }
 
-function writeClaims(data: Claim[]): void {
-  localStorage.setItem(CLAIMS_KEY, JSON.stringify(data));
-}
-
-export function getClaims(userId: string): Claim[] {
-  return readClaims()
-    .filter((c) => c.userId === userId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
-export function submitClaim(
+export async function submitClaim(
   data: Omit<Claim, "id" | "status" | "createdAt">
-): { success: true; claim: Claim } | { success: false; error: string } {
+): Promise<{ success: true; claim: Claim } | { success: false; error: string }> {
   if (!data.description.trim()) {
     return { success: false, error: "Description is required." };
   }
@@ -92,12 +97,22 @@ export function submitClaim(
     return { success: false, error: "Amount must be greater than 0." };
   }
 
-  const claim: Claim = {
-    id: "clm_" + generateId(),
-    status: "pending",
-    createdAt: new Date().toISOString(),
-    ...data,
-  };
-  writeClaims([...readClaims(), claim]);
-  return { success: true, claim };
+  const { data: newClaim, error } = await supabase
+    .from("claims")
+    .insert([{
+      userId: data.userId,
+      amount: data.amount,
+      description: data.description,
+      status: "pending",
+      fileUrl: data.fileUrl,
+      createdAt: new Date().toISOString()
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, claim: newClaim as Claim };
 }

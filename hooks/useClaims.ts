@@ -1,30 +1,36 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { getClaims, submitClaim } from "@/lib/api";
 import type { Claim } from "@/types";
 
 export function useClaims(userId: string) {
-  const [claims, setClaims] = useState<Claim[]>(() =>
-    typeof window !== "undefined" ? getClaims(userId) : []
-  );
+  const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(() => {
-    setClaims(getClaims(userId));
+  const refresh = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    const data = await getClaims(userId);
+    setClaims(data);
+    setLoading(false);
   }, [userId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const submit = useCallback(
     async (data: Omit<Claim, "id" | "status" | "createdAt">) => {
       setLoading(true);
       setError(null);
-      const result = submitClaim(data);
-      setLoading(false);
+      const result = await submitClaim(data);
       if (result.success) {
-        refresh();
+        await refresh();
         return { success: true as const };
       }
+      setLoading(false);
       setError(result.error);
       return { success: false as const, error: result.error };
     },
