@@ -7,7 +7,7 @@ export const MOCK_USERS: (User & { password: string })[] = [
     name: "Arjun Sharma",
     email: "arjun@sau.edu.in",
     password: "password123",
-    role: "student",
+    roles: ["student"],
     studentId: "SAU2024001",
     avatar: "",
   },
@@ -16,7 +16,7 @@ export const MOCK_USERS: (User & { password: string })[] = [
     name: "Priya Mehta",
     email: "priya@sau.edu.in",
     password: "password123",
-    role: "student",
+    roles: ["student"],
     studentId: "SAU2024002",
     avatar: "",
   },
@@ -25,11 +25,12 @@ export const MOCK_USERS: (User & { password: string })[] = [
     name: "Dr. Admin",
     email: "admin@sau.edu.in",
     password: "admin123",
-    role: "admin",
+    roles: ["admin"],
     studentId: "ADM001",
     avatar: "",
   },
 ];
+
 
 /** Mock doctors with available time slots */
 export const MOCK_DOCTORS: Doctor[] = [

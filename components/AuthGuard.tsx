@@ -6,12 +6,14 @@ import { useAuth } from "@/hooks/useAuth";
 
 /** Wraps protected pages — redirects to /login if not authenticated */
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, initAuth } = useAuth();
+  const { isAuthenticated, isLoading, isInitialized, initAuth } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    initAuth();
-  }, [initAuth]);
+    if (!isInitialized) {
+      initAuth();
+    }
+  }, [initAuth, isInitialized]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

@@ -9,26 +9,51 @@ import {
   AlertTriangle,
   LogOut,
   Heart,
+  FileSearch,
+  Pill,
+  ShieldCheck,
+  UserCog,
+  Map,
+  User,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { cn } from "@/lib/utils";
-import { getInitials } from "@/lib/utils";
+import { NotificationBell } from "@/components/NotificationBell";
+import { cn, getInitials } from "@/lib/utils";
+import type { UserRole } from "@/types";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/appointments", icon: CalendarDays, label: "Appointments" },
-  { href: "/insurance", icon: FileText, label: "Insurance" },
+// Each nav item can be restricted to specific roles.
+// If `roles` is undefined, all authenticated users see it.
+const NAV_ITEMS: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  roles?: UserRole[];
+}[] = [
+  { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/appointments",     icon: CalendarDays,    label: "Appointments" },
+  { href: "/medical-records",  icon: FileSearch,      label: "Medical Records" },
+  { href: "/insurance",        icon: FileText,        label: "Insurance",        roles: ["student", "admin"] },
+  { href: "/insurance-admin",  icon: ShieldCheck,     label: "Claims Review",    roles: ["insurance", "admin"] },
+  { href: "/pharmacy",         icon: Pill,            label: "Pharmacy",         roles: ["pharmacy", "admin", "doctor"] },
+  { href: "/sos/map",          icon: Map,             label: "SOS Map",          roles: ["doctor", "medical_center", "admin", "pharmacy"] },
+  { href: "/admin",            icon: UserCog,         label: "Admin Panel",      roles: ["admin"] },
+  { href: "/profile",          icon: User,            label: "My Profile" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/login");
   };
+
+  const visibleItems = NAV_ITEMS.filter(({ roles }) => {
+    if (!roles) return true;
+    return roles.some((r) => hasRole(r));
+  });
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-slate-950/95 border-r border-white/5 flex flex-col z-40 backdrop-blur-xl">
@@ -44,8 +69,8 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {visibleItems.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
@@ -58,15 +83,15 @@ export default function Sidebar() {
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <Icon className={cn("w-4 h-4", active ? "text-violet-400" : "")} />
+              <Icon className={cn("w-4 h-4 shrink-0", active ? "text-violet-400" : "")} />
               {label}
             </Link>
           );
         })}
       </nav>
 
-      {/* SOS Button */}
-      <div className="px-4 pb-4">
+      {/* SOS Emergency Button */}
+      <div className="px-4 pb-3">
         <Link
           href="/sos"
           className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 text-sm font-medium transition-all duration-200 group"
@@ -76,16 +101,19 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      {/* User + Logout */}
+      {/* User + Notifications + Logout */}
       <div className="px-4 pb-6 border-t border-white/5 pt-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
             {user ? getInitials(user.name) : "?"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.studentId}</p>
+            <p className="text-xs text-slate-500 truncate">
+              {user?.roles?.join(", ")}
+            </p>
           </div>
+          {user && <NotificationBell userId={user.id} />}
         </div>
         <button
           onClick={handleLogout}

@@ -1,31 +1,35 @@
 // ─────────────────────────────────────────────
+// ROLES
+// ─────────────────────────────────────────────
+export type UserRole =
+  | "student"
+  | "doctor"
+  | "pharmacy"
+  | "admin"
+  | "insurance"
+  | "medical_center";
+
+// ─────────────────────────────────────────────
 // USER
-// id          → unique identifier (localStorage key, join key for relations)
-// name        → display name shown across all views
-// email       → used as the login credential
-// role        → controls what features are accessible
-// studentId   → campus ID for insurance & appointment references
 // ─────────────────────────────────────────────
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: "student" | "doctor" | "admin";
-  studentId: string;
+  roles: UserRole[];         // multi-role support
+  studentId?: string;        // alias for college_id
+  college_id?: string;
+  phone?: string;
+  class?: string;
+  branch?: string;
+  batch?: string;
+  blood_group?: string;
+  medical_conditions?: string;
   avatar?: string;
 }
 
 // ─────────────────────────────────────────────
 // APPOINTMENT
-// id          → unique booking reference
-// userId      → links appointment to the student who booked
-// doctorId    → links to which doctor (from mock list)
-// doctorName  → denormalized for display without extra lookup
-// specialty   → shown in UI cards for context
-// timeSlot    → ISO date string of the appointment time
-// date        → human-readable date string (display only)
-// status      → tracks lifecycle: booked → completed / cancelled
-// notes       → optional reason for visit
 // ─────────────────────────────────────────────
 export interface Appointment {
   id: string;
@@ -40,14 +44,7 @@ export interface Appointment {
 }
 
 // ─────────────────────────────────────────────
-// CLAIM
-// id          → unique claim reference
-// userId      → links claim to the student
-// amount      → claim value in INR
-// description → what the claim is for (medical procedure, medicine, etc.)
-// status      → tracks lifecycle: pending → approved / rejected
-// createdAt   → timestamp for display and sorting
-// fileUrl     → optional uploaded bill reference (simulated)
+// INSURANCE CLAIM
 // ─────────────────────────────────────────────
 export interface Claim {
   id: string;
@@ -56,16 +53,105 @@ export interface Claim {
   description: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+  updatedAt?: string;
   fileUrl?: string;
+  reviewedBy?: string;
+  reviewNote?: string;
+  approvedAmount?: number;
+}
+
+// ─────────────────────────────────────────────
+// MEDICAL RECORD
+// ─────────────────────────────────────────────
+export interface MedicalRecord {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  doctorName: string;
+  diagnosis: string;
+  treatment?: string;
+  prescription?: string;
+  notes?: string;
+  visitDate: string;
+  created_at: string;
+}
+
+// ─────────────────────────────────────────────
+// PRESCRIPTION
+// ─────────────────────────────────────────────
+export interface PrescriptionMedicine {
+  name: string;
+  dosage: string;
+  duration: string;
+  qty: number;
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  patientName: string;
+  doctorId: string;
+  doctorName: string;
+  recordId?: string;
+  medicines: PrescriptionMedicine[];
+  instructions?: string;
+  status: "pending" | "dispensed";
+  created_at: string;
+}
+
+// ─────────────────────────────────────────────
+// PHARMACY INVENTORY
+// ─────────────────────────────────────────────
+export interface InventoryItem {
+  id: string;
+  name: string;
+  generic_name?: string;
+  category?: string;
+  quantity: number;
+  unit: string;
+  threshold: number;
+  price_per_unit: number;
+  updated_at: string;
+}
+
+// ─────────────────────────────────────────────
+// SOS REQUEST
+// ─────────────────────────────────────────────
+export interface SosRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhone?: string;
+  collegeId?: string;
+  lat: number;
+  lng: number;
+  accuracy?: number;
+  status: "active" | "responding" | "resolved";
+  message?: string;
+  resolvedBy?: string;
+  resolvedNote?: string;
+  resolvedAt?: string;
+  ambulanceCalled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATION
+// ─────────────────────────────────────────────
+export interface Notification {
+  id: string;
+  userId: string;
+  type: "sos" | "appointment" | "insurance" | "general";
+  title: string;
+  message: string;
+  read: boolean;
+  relatedId?: string;
+  created_at: string;
 }
 
 // ─────────────────────────────────────────────
 // DOCTOR (mock data shape)
-// id          → unique doctor identifier
-// name        → displayed when selecting
-// specialty   → helps student pick the right doctor
-// available   → time slots the doctor has open
-// avatar      → initials-based fallback or real URL
 // ─────────────────────────────────────────────
 export interface Doctor {
   id: string;
@@ -83,12 +169,15 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   initAuth: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  hasRole: (role: UserRole) => boolean;
 }
 
 // ─────────────────────────────────────────────
-// TOAST (notification)
+// TOAST
 // ─────────────────────────────────────────────
 export type ToastVariant = "default" | "success" | "destructive";
 

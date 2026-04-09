@@ -1,22 +1,30 @@
 "use client";
 
 import { create } from "zustand";
-import { loginUser, loadSession, clearSession } from "@/lib/auth";
-import type { AuthState } from "@/types";
+import { loginUser, loginWithGoogle, loadSession, clearSession } from "@/lib/auth";
+import type { AuthState, UserRole } from "@/types";
 
-export const useAuth = create<AuthState>((set) => ({
+export const useAuth = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
+  isInitialized: false,
 
-  /** Called once on app mount to rehydrate session */
+  /** Rehydrate session from Supabase on mount */
   initAuth: async () => {
+    if (get().isInitialized) return;
     set({ isLoading: true });
     const user = await loadSession();
-    set({ user, isAuthenticated: !!user, isLoading: false });
+    set({ user, isAuthenticated: !!user, isLoading: false, isInitialized: true });
   },
 
-  /** Login with email + password */
+  /** Refresh user from Supabase (call after profile update) */
+  refreshUser: async () => {
+    const user = await loadSession();
+    set({ user, isAuthenticated: !!user });
+  },
+
+  /** Email + password login */
   login: async (email, password) => {
     set({ isLoading: true });
     const result = await loginUser(email, password);
@@ -28,9 +36,20 @@ export const useAuth = create<AuthState>((set) => ({
     return { success: false, error: result.error };
   },
 
-  /** Clear session and reset state */
+  /** Google OAuth — redirects user, no return value */
+  loginWithGoogle: async () => {
+    return loginWithGoogle();
+  },
+
+  /** Sign out */
   logout: async () => {
     await clearSession();
     set({ user: null, isAuthenticated: false });
+  },
+
+  /** Convenience: check if current user has a specific role */
+  hasRole: (role: UserRole) => {
+    const { user } = get();
+    return user?.roles?.includes(role) ?? false;
   },
 }));

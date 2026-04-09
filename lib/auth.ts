@@ -1,21 +1,37 @@
 import { supabase } from "./supabase";
-import type { User } from "@/types";
+import type { User, UserRole } from "@/types";
 
+/** Maps a raw Supabase profile row to our User type */
+function mapProfile(profile: Record<string, unknown>, email: string): User {
+  return {
+    id: profile.id as string,
+    email,
+    name: (profile.name as string) ?? "Unknown",
+    roles: (profile.roles as UserRole[]) ?? ["student"],
+    studentId: (profile.college_id as string) ?? "",
+    college_id: (profile.college_id as string) ?? "",
+    phone: profile.phone as string | undefined,
+    class: profile.class as string | undefined,
+    branch: profile.branch as string | undefined,
+    batch: profile.batch as string | undefined,
+    blood_group: profile.blood_group as string | undefined,
+    medical_conditions: profile.medical_conditions as string | undefined,
+    avatar: profile.avatar as string | undefined,
+  };
+}
+
+// ─── Email / Password Login ────────────────────────────────────
 export async function loginUser(
   email: string,
   password: string
 ): Promise<{ success: true; user: User } | { success: false; error: string }> {
   try {
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError || !authData.user) {
-      return { success: false, error: authError?.message || "Login failed." };
+      return { success: false, error: authError?.message ?? "Login failed." };
     }
 
-    // Fetch profile
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
@@ -23,24 +39,29 @@ export async function loginUser(
       .single();
 
     if (profileError || !profile) {
-      return { success: false, error: "Profile not found." };
+      return { success: false, error: "Profile not found. Please contact admin." };
     }
 
-    const user: User = {
-      id: profile.id,
-      email: authData.user.email!,
-      name: profile.name,
-      role: profile.role,
-      studentId: profile.student_id,
-      avatar: profile.avatar,
-    };
-
-    return { success: true, user };
-  } catch (error: any) {
-    return { success: false, error: error.message || "An unexpected error occurred." };
+    return { success: true, user: mapProfile(profile, authData.user.email!) };
+  } catch (error: unknown) {
+    return { success: false, error: (error as Error).message ?? "Unexpected error." };
   }
 }
 
+// ─── Google OAuth ──────────────────────────────────────────────
+export async function loginWithGoogle(): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
+      queryParams: { access_type: "offline", prompt: "consent" },
+    },
+  });
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+// ─── Load Session ──────────────────────────────────────────────
 export async function loadSession(): Promise<User | null> {
   if (typeof window === "undefined") return null;
   try {
@@ -54,22 +75,39 @@ export async function loadSession(): Promise<User | null> {
       .single();
 
     if (!profile) return null;
-
-    return {
-      id: profile.id,
-      email: session.user.email!,
-      name: profile.name,
-      role: profile.role,
-      studentId: profile.student_id,
-      avatar: profile.avatar,
-    };
+    return mapProfile(profile, session.user.email!);
   } catch {
     return null;
   }
 }
 
+// ─── Sign Out ─────────────────────────────────────────────────
 export async function clearSession(): Promise<void> {
   if (typeof window !== "undefined") {
     await supabase.auth.signOut();
   }
+}
+
+// ─── Update Profile ───────────────────────────────────────────
+export async function updateProfile(
+  userId: string,
+  updates: Partial<Omit<User, "id" | "email" | "roles">>
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      name: updates.name,
+      phone: updates.phone,
+      class: updates.class,
+      branch: updates.branch,
+      batch: updates.batch,
+      college_id: updates.college_id ?? updates.studentId,
+      blood_group: updates.blood_group,
+      medical_conditions: updates.medical_conditions,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
 }
