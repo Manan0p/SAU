@@ -1,26 +1,90 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-inter: "Inter", system-ui, sans-serif;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Tailwind CSS v4 animations ─────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+@keyframes pulse {
+  50% { opacity: 0.5; }
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+  50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-in-from-top {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes zoom-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@theme inline {
+  --animate-spin: spin 1s linear infinite;
+  --animate-ping: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-bounce: bounce 1s infinite;
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-in-from-right-full: slide-in-from-right 0.3s ease-out;
+  --animate-in: fade-in 0.2s ease-out;
+  --animate-zoom-in: zoom-in 0.2s ease-out;
+}
+
+/* animate-in helper classes used by Radix dialogs */
+.data-\[state\=open\]\:animate-in[data-state="open"],
+.animate-in {
+  animation-duration: 200ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+.data-\[state\=closed\]\:animate-out[data-state="closed"] {
+  animation-duration: 150ms;
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+}
+.fade-in-0 { animation-name: fade-in; }
+.fade-out-0 { animation-name: fade-in; animation-direction: reverse; }
+.zoom-in-95 { animation-name: zoom-in; }
+.zoom-out-95 { animation-name: zoom-in; animation-direction: reverse; }
+.slide-in-from-left-1\/2 { animation-name: fade-in; }
+.slide-out-to-left-1\/2 { animation-name: fade-in; animation-direction: reverse; }
+.slide-in-from-top-\[48\%\] { animation-name: slide-in-from-top; }
+.slide-out-to-top-\[48\%\] { animation-name: slide-in-from-top; animation-direction: reverse; }
+.slide-in-from-right-full { animation-name: slide-in-from-right; }
+.duration-300 { animation-duration: 300ms; }
