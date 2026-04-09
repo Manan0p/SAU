@@ -1,0 +1,30 @@
+{
+    "max_annual_limit": 50000,
+    "per_claim_cap": 15000,
+    "coverage_percentage": 80,
+    "max_days_to_submit": 30,
+    "covered_hospitals": [
+        "Apollo",
+        "AIIMS",
+        "Fortis",
+        "Max",
+        "Medanta",
+        "Manipal",
+        "Narayana",
+        "Kokilaben",
+        "Lilavati",
+        "Ruby Hall",
+        "CMC",
+        "Breach Candy",
+        "Sir Ganga Ram",
+        "Safdarjung",
+        "PGIMER",
+        "Campus Health Center",
+        "University Hospital",
+        "College Clinic"
+    ],
+    "fraud_thresholds": {
+        "amount_iqr_multiplier": 1.5,
+        "duplicate_window_days": 90
+    }
+}
