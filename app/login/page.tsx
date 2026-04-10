@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Heart, Eye, EyeOff, ArrowRight, Shield, Calendar, Stethoscope, UserCog, User, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ToastProvider";
@@ -21,7 +21,6 @@ export default function LoginPage() {
   const { login, loginStaff, loginAdmin, isAuthenticated, initAuth, isInitialized, hasRole } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Initialise auth on first load
   useEffect(() => {
