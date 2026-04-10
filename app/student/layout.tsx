@@ -2,6 +2,7 @@
 
 import AuthGuard from "@/components/AuthGuard";
 import Sidebar from "@/components/Sidebar";
+import AIChatbot from "@/components/AIChatbot";
 
 /**
  * Layout for student pages.
@@ -16,6 +17,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <Sidebar />
         <main className="flex-1 ml-64 min-h-screen overflow-y-auto">
           {children}
+          <AIChatbot />
         </main>
       </div>
     </AuthGuard>

@@ -20,6 +20,7 @@ import { cn, getInitials } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/student/dashboard",       icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/student/reminders",       icon: Pill,            label: "Reminders" },
   { href: "/student/appointments",    icon: CalendarDays,    label: "Appointments" },
   { href: "/student/medical-records", icon: FileSearch,      label: "Medical Records" },
   { href: "/student/insurance",       icon: FileText,        label: "Insurance Claims" },

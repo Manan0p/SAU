@@ -511,3 +511,31 @@ CREATE POLICY "staff_all_leave" ON public.medical_leave
         )
     )
   );
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- MEDICATION SCHEDULES (Auto Reminders)
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.medication_schedules (
+  id                  uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  "userId"            uuid        REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  medicine_name       text        NOT NULL,
+  dosage              text,
+  times_of_day        text[]      NOT NULL DEFAULT '{}', -- e.g. ['09:00', '21:00']
+  active              boolean     DEFAULT true,
+  created_at          timestamp with time zone DEFAULT timezone('utc', now()) NOT NULL
+);
+
+ALTER TABLE public.medication_schedules ENABLE ROW LEVEL SECURITY;
+
+-- Students see only their own schedules
+CREATE POLICY "users_own_schedules_select" ON public.medication_schedules
+  FOR SELECT USING (auth.uid() = "userId");
+
+CREATE POLICY "users_own_schedules_insert" ON public.medication_schedules
+  FOR INSERT WITH CHECK (auth.uid() = "userId");
+
+CREATE POLICY "users_own_schedules_update" ON public.medication_schedules
+  FOR UPDATE USING (auth.uid() = "userId");
+
+CREATE POLICY "users_own_schedules_delete" ON public.medication_schedules
+  FOR DELETE USING (auth.uid() = "userId");
