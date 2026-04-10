@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Eye, EyeOff, ArrowRight, ShieldAlert, Lock } from "lucide-react";
+import { Heart, Eye, EyeOff, Lock, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +20,15 @@ export default function AdminLoginPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => { if (!isInitialized) initAuth(); }, [initAuth, isInitialized]);
   useEffect(() => {
-    if (isAuthenticated && hasRole("admin")) router.replace("/admin/dashboard");
-  }, [isAuthenticated, hasRole, router]);
+    if (!isInitialized) initAuth();
+  }, [initAuth, isInitialized]);
+
+  // Only redirect once auth is fully loaded
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated) return;
+    if (hasRole("admin")) router.replace("/admin/dashboard");
+  }, [isInitialized, isAuthenticated, hasRole, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,22 +46,22 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-slate-900 via-rose-950 to-slate-900 p-12 relative overflow-hidden">
-        <div className="absolute top-[-80px] left-[-80px] w-96 h-96 bg-rose-600/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-80px] right-[-80px] w-96 h-96 bg-orange-600/20 rounded-full blur-3xl" />
+      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900 p-12 relative overflow-hidden">
+        <div className="absolute top-[-80px] left-[-80px] w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-80px] right-[-80px] w-96 h-96 bg-fuchsia-600/20 rounded-full blur-3xl" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 flex items-center justify-center shadow-lg shadow-rose-500/40">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/40">
               <Heart className="w-6 h-6 text-white" />
             </div>
             <div>
               <span className="text-white font-bold text-xl">UniWell</span>
-              <span className="ml-2 text-xs text-rose-400 font-semibold bg-rose-500/20 px-2 py-0.5 rounded-full">Admin</span>
+              <span className="ml-2 text-xs text-violet-400 font-semibold bg-violet-500/20 px-2 py-0.5 rounded-full">Admin</span>
             </div>
           </div>
           <h1 className="text-5xl font-bold text-white leading-tight mb-6">
             Admin Control<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">Center</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Center</span>
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
             Full system access. Manage users, roles, view audit logs, and oversee all campus health operations.
@@ -70,7 +75,7 @@ export default function AdminLoginPage() {
             "Monitor all SOS, claims & appointments",
           ].map((item) => (
             <div key={item} className="flex items-center gap-3 text-slate-300 text-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0" />
               {item}
             </div>
           ))}
@@ -81,15 +86,15 @@ export default function AdminLoginPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-950">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-3 mb-10 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" />
             </div>
             <span className="text-white font-bold text-lg">UniWell Admin</span>
           </div>
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/20 flex items-center justify-center">
-              <ShieldAlert className="w-6 h-6 text-rose-400" />
+            <div className="w-12 h-12 rounded-2xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
+              <ShieldAlert className="w-6 h-6 text-violet-400" />
             </div>
             <div>
               <h2 className="text-3xl font-bold text-white">Admin Sign In</h2>
@@ -97,8 +102,8 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-            <p className="text-xs text-rose-300 leading-relaxed">
+          <div className="mb-6 p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
+            <p className="text-xs text-violet-300 leading-relaxed">
               🔐 <strong>High privileged access.</strong> This panel is restricted to university administrators only. All actions are logged in the audit trail.
             </p>
           </div>
@@ -107,7 +112,7 @@ export default function AdminLoginPage() {
             <span className="font-semibold text-slate-300">Demo admin:</span> admin@uniwell.edu / UniAdmin2024!
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" suppressHydrationWarning>
             <div className="space-y-2">
               <Label htmlFor="admin-email">Admin Email</Label>
               <Input id="admin-email" type="email" placeholder="admin@sau.edu.in" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
@@ -121,7 +126,7 @@ export default function AdminLoginPage() {
                 </button>
               </div>
             </div>
-            <Button id="admin-login-submit" type="submit" size="lg" className="w-full bg-rose-700 hover:bg-rose-800 shadow-lg shadow-rose-500/20" disabled={isLoading}>
+            <Button id="admin-login-submit" type="submit" size="lg" className="w-full bg-violet-700 hover:bg-violet-800 shadow-lg shadow-violet-500/20" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Verifying…</span>
               ) : (

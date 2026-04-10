@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ToastProvider";
-import { supabase } from "@/lib/supabase";
 
 type Tab = "login" | "signup";
 
@@ -31,15 +30,27 @@ export default function LoginPage() {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
 
-  const { login, loginWithGoogle, isAuthenticated, initAuth, isInitialized } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated, initAuth, isInitialized, hasRole } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useEffect(() => { if (!isInitialized) initAuth(); }, [initAuth, isInitialized]);
+  // Initialise auth on first load
   useEffect(() => {
-    if (isAuthenticated) router.replace("/dashboard");
-  }, [isAuthenticated, router]);
+    if (!isInitialized) initAuth();
+  }, [initAuth, isInitialized]);
+
+  // Redirect once auth is fully initialised and user is logged in
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated) return;
+    if (hasRole("admin")) {
+      router.replace("/admin/dashboard");
+    } else if (hasRole("doctor") || hasRole("pharmacy") || hasRole("insurance") || hasRole("medical_center")) {
+      router.replace("/staff/dashboard");
+    } else {
+      router.replace("/student/dashboard");
+    }
+  }, [isInitialized, isAuthenticated, hasRole, router]);
 
   useEffect(() => {
     if (searchParams.get("error") === "auth_callback_failed") {
@@ -58,7 +69,14 @@ export default function LoginPage() {
     setIsLoading(false);
     if (result.success) {
       toast({ title: "Welcome back! 👋", description: "Redirecting to your dashboard…", variant: "success" });
-      router.replace("/dashboard");
+      // hasRole is now populated after login() sets the user
+      if (hasRole("admin")) {
+        router.replace("/admin/dashboard");
+      } else if (hasRole("doctor") || hasRole("pharmacy") || hasRole("insurance") || hasRole("medical_center")) {
+        router.replace("/staff/dashboard");
+      } else {
+        router.replace("/student/dashboard");
+      }
     } else {
       toast({ title: "Login failed", description: result.error, variant: "destructive" });
     }
@@ -117,7 +135,7 @@ export default function LoginPage() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">our priority.</span>
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-            SAU's integrated campus healthcare platform. Book appointments, manage insurance claims, and access emergency help — all in one place.
+            SAU&apos;s integrated campus healthcare platform. Book appointments, manage insurance claims, and access emergency help — all in one place.
           </p>
         </div>
         <div className="relative z-10 grid grid-cols-1 gap-4">
@@ -203,7 +221,7 @@ export default function LoginPage() {
                 <div className="flex-1 h-px bg-white/10" />
               </div>
 
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4" suppressHydrationWarning>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email address</Label>
                   <Input id="email" type="email" placeholder="you@sau.edu.in" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
@@ -226,7 +244,7 @@ export default function LoginPage() {
             <>
               <h2 className="text-3xl font-bold text-white mb-2">Create account</h2>
               <p className="text-slate-400 mb-6">Register as a new student of SAU.</p>
-              <form onSubmit={handleSignup} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-4" suppressHydrationWarning>
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
                   <Input id="signup-name" type="text" placeholder="Arjun Sharma" value={signupName} onChange={(e) => setSignupName(e.target.value)} required />

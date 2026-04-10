@@ -74,6 +74,10 @@ export interface MedicalRecord {
   notes?: string;
   visitDate: string;
   created_at: string;
+  profiles?: {
+    name: string;
+    college_id?: string;
+  } | null;
 }
 
 // ─────────────────────────────────────────────

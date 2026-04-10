@@ -11,49 +11,34 @@ import {
   Heart,
   FileSearch,
   Pill,
-  ShieldCheck,
-  UserCog,
-  Map,
   User,
+  FileClock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { cn, getInitials } from "@/lib/utils";
-import type { UserRole } from "@/types";
 
-// Each nav item can be restricted to specific roles.
-// If `roles` is undefined, all authenticated users see it.
-const NAV_ITEMS: {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  roles?: UserRole[];
-}[] = [
-  { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/appointments",     icon: CalendarDays,    label: "Appointments" },
-  { href: "/medical-records",  icon: FileSearch,      label: "Medical Records" },
-  { href: "/insurance",        icon: FileText,        label: "Insurance",        roles: ["student", "admin"] },
-  { href: "/insurance-admin",  icon: ShieldCheck,     label: "Claims Review",    roles: ["insurance", "admin"] },
-  { href: "/pharmacy",         icon: Pill,            label: "Pharmacy",         roles: ["pharmacy", "admin", "doctor"] },
-  { href: "/sos/map",          icon: Map,             label: "SOS Map",          roles: ["doctor", "medical_center", "admin", "pharmacy"] },
-  { href: "/admin",            icon: UserCog,         label: "Admin Panel",      roles: ["admin"] },
-  { href: "/profile",          icon: User,            label: "My Profile" },
+const NAV_ITEMS = [
+  { href: "/student/dashboard",       icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/student/appointments",    icon: CalendarDays,    label: "Appointments" },
+  { href: "/student/medical-records", icon: FileSearch,      label: "Medical Records" },
+  { href: "/student/insurance",       icon: FileText,        label: "Insurance Claims" },
+  { href: "/student/pharmacy",        icon: Pill,            label: "Medicines" },
+  { href: "/student/leave",           icon: FileClock,       label: "Medical Leave" },
+  { href: "/student/profile",         icon: User,            label: "My Profile" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, hasRole } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
     router.push("/login");
   };
 
-  const visibleItems = NAV_ITEMS.filter(({ roles }) => {
-    if (!roles) return true;
-    return roles.some((r) => hasRole(r));
-  });
+  const visibleItems = NAV_ITEMS;
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-slate-950/95 border-r border-white/5 flex flex-col z-40 backdrop-blur-xl">
@@ -93,7 +78,7 @@ export default function Sidebar() {
       {/* SOS Emergency Button */}
       <div className="px-4 pb-3">
         <Link
-          href="/sos"
+          href="/student/sos"
           className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 text-sm font-medium transition-all duration-200 group"
         >
           <AlertTriangle className="w-4 h-4 group-hover:animate-pulse" />

@@ -115,12 +115,10 @@ function MedicalRecordsContent() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold">
-                    {getInitials(isDoctor ? (r.profiles?.name || "Patient") : r.doctorName.replace("Dr. ", ""))}
+                    {getInitials(r.doctorName.replace("Dr. ", ""))}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">
-                      {isDoctor ? (r.profiles?.name || r.patientId) : r.doctorName}
-                    </p>
+                    <p className="text-sm font-semibold text-white">{r.doctorName}</p>
                     <p className="text-xs text-slate-500">{formatDate(r.visitDate)}</p>
                   </div>
                 </div>
@@ -147,12 +145,10 @@ function MedicalRecordsContent() {
           {selectedRecord && (
             <div className="space-y-4 text-sm">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
-                <User className="w-5 h-5 text-violet-400 shrink-0" />
+                <Stethoscope className="w-5 h-5 text-violet-400 shrink-0" />
                 <div>
-                  <p className="text-xs text-slate-400">{isDoctor ? "Patient" : "Doctor"}</p>
-                  <p className="text-white font-medium">
-                    {isDoctor ? (selectedRecord.profiles?.name || selectedRecord.patientId) : selectedRecord.doctorName}
-                  </p>
+                  <p className="text-xs text-slate-400">Doctor</p>
+                  <p className="text-white font-medium">{selectedRecord.doctorName}</p>
                 </div>
               </div>
               <div className="space-y-1">

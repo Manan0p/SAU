@@ -30,10 +30,15 @@ export default function StaffLoginPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => { if (!isInitialized) initAuth(); }, [initAuth, isInitialized]);
   useEffect(() => {
-    if (isAuthenticated) router.replace("/staff/dashboard");
-  }, [isAuthenticated, router]);
+    if (!isInitialized) initAuth();
+  }, [initAuth, isInitialized]);
+
+  // Only redirect once auth is fully loaded
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated) return;
+    router.replace("/staff/dashboard");
+  }, [isInitialized, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,22 +56,22 @@ export default function StaffLoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-12 relative overflow-hidden">
-        <div className="absolute top-[-80px] left-[-80px] w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-80px] right-[-80px] w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl" />
+      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900 p-12 relative overflow-hidden">
+        <div className="absolute top-[-80px] left-[-80px] w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-80px] right-[-80px] w-96 h-96 bg-fuchsia-600/20 rounded-full blur-3xl" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/40">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/40">
               <Heart className="w-6 h-6 text-white" />
             </div>
             <div>
               <span className="text-white font-bold text-xl">UniWell</span>
-              <span className="ml-2 text-xs text-blue-400 font-semibold bg-blue-500/20 px-2 py-0.5 rounded-full">Staff</span>
+              <span className="ml-2 text-xs text-violet-400 font-semibold bg-violet-500/20 px-2 py-0.5 rounded-full">Staff</span>
             </div>
           </div>
           <h1 className="text-5xl font-bold text-white leading-tight mb-6">
             Staff Portal<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Access Panel</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Access Panel</span>
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
             Restricted to UniWell staff members only. Contact your administrator if you need access.
@@ -75,8 +80,8 @@ export default function StaffLoginPage() {
         <div className="relative z-10 grid grid-cols-1 gap-3">
           {ROLE_INFO.map(({ icon: Icon, label, desc }) => (
             <div key={label} className="flex items-center gap-4 bg-white/5 border border-white/8 rounded-xl p-4">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
-                <Icon className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
+                <Icon className="w-5 h-5 text-violet-400" />
               </div>
               <div>
                 <p className="text-white font-medium text-sm">{label}</p>
@@ -91,15 +96,15 @@ export default function StaffLoginPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-950">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-3 mb-10 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" />
             </div>
             <span className="text-white font-bold text-lg">UniWell Staff</span>
           </div>
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-blue-400" />
+            <div className="w-12 h-12 rounded-2xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
+              <Lock className="w-6 h-6 text-violet-400" />
             </div>
             <div>
               <h2 className="text-3xl font-bold text-white">Staff Sign In</h2>
@@ -107,13 +112,13 @@ export default function StaffLoginPage() {
             </div>
           </div>
 
-          <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-            <p className="text-xs text-blue-300 leading-relaxed">
+          <div className="mb-6 p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
+            <p className="text-xs text-violet-300 leading-relaxed">
               🔒 This portal is <strong>only accessible to staff members</strong> (doctors, pharmacists, insurance officers, medical center staff). New members must be added by an administrator.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" suppressHydrationWarning>
             <div className="space-y-2">
               <Label htmlFor="staff-email">Staff Email</Label>
               <Input id="staff-email" type="email" placeholder="staff@sau.edu.in" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
@@ -127,7 +132,7 @@ export default function StaffLoginPage() {
                 </button>
               </div>
             </div>
-            <Button id="staff-login-submit" type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20" disabled={isLoading}>
+            <Button id="staff-login-submit" type="submit" size="lg" className="w-full bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-500/20" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Verifying…</span>
               ) : (

@@ -446,3 +446,68 @@ insert into public.pharmacy_inventory (name, generic_name, category, quantity, u
   ('Bandage Large', NULL, 'First Aid', 50, 'rolls', 5, 30.00),
   ('Betadine Solution', 'Povidone Iodine', 'Antiseptic', 30, 'bottles', 5, 85.00)
 on conflict do nothing;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- PHARMACY ORDERS (student medicine requests)
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.pharmacy_orders (
+  id                  uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  "studentId"         uuid        REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  "itemId"            uuid        REFERENCES public.pharmacy_inventory(id) ON DELETE SET NULL,
+  item_name           text        NOT NULL,
+  quantity_requested  integer     NOT NULL DEFAULT 1 CHECK (quantity_requested > 0),
+  status              text        NOT NULL DEFAULT 'pending'
+                                  CHECK (status IN ('pending','fulfilled','rejected')),
+  notes               text,
+  created_at          timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.pharmacy_orders ENABLE ROW LEVEL SECURITY;
+
+-- Students see only their own orders; pharmacy staff see all
+CREATE POLICY "students_own_orders" ON public.pharmacy_orders
+  FOR ALL USING (auth.uid() = "studentId");
+CREATE POLICY "pharmacy_all_orders" ON public.pharmacy_orders
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+        AND (roles @> ARRAY['pharmacy']::text[] OR roles @> ARRAY['admin']::text[])
+    )
+  );
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- MEDICAL LEAVE (student leave applications)
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.medical_leave (
+  id                  uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  "studentId"         uuid        REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  from_date           date        NOT NULL,
+  to_date             date        NOT NULL,
+  reason              text        NOT NULL,
+  supporting_doc_url  text,
+  status              text        NOT NULL DEFAULT 'pending'
+                                  CHECK (status IN ('pending','approved','rejected')),
+  reviewed_by         uuid        REFERENCES public.profiles(id),
+  review_note         text,
+  created_at          timestamptz DEFAULT now(),
+  CONSTRAINT valid_date_range CHECK (to_date >= from_date)
+);
+
+ALTER TABLE public.medical_leave ENABLE ROW LEVEL SECURITY;
+
+-- Students see their own leave; medical center / admin see all
+CREATE POLICY "students_own_leave" ON public.medical_leave
+  FOR ALL USING (auth.uid() = "studentId");
+CREATE POLICY "staff_all_leave" ON public.medical_leave
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+        AND (
+          roles @> ARRAY['medical_center']::text[] OR
+          roles @> ARRAY['admin']::text[] OR
+          roles @> ARRAY['doctor']::text[]
+        )
+    )
+  );

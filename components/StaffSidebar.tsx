@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarDays, FileSearch, Pill, ShieldCheck, Map,
-  LogOut, Heart, User, ClipboardList, Package,
+  LogOut, Heart, User, Package, LayoutDashboard,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -14,23 +14,24 @@ import type { UserRole } from "@/types";
 // Role to nav items mapping
 const ROLE_NAV: Record<UserRole, { href: string; icon: React.ElementType; label: string }[]> = {
   doctor: [
-    { href: "/staff/dashboard", icon: CalendarDays, label: "My Appointments" },
-    { href: "/medical-records", icon: FileSearch, label: "Medical Records" },
-    { href: "/sos/map", icon: Map, label: "SOS Map" },
+    { href: "/staff/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/staff/appointments", icon: CalendarDays, label: "My Appointments" },
+    { href: "/medical-records", icon: FileSearch,   label: "Patient Records" },
+    { href: "/sos/map",         icon: Map,          label: "SOS Map" },
   ],
   pharmacy: [
-    { href: "/staff/dashboard", icon: Package, label: "Dashboard" },
-    { href: "/pharmacy", icon: Pill, label: "Inventory" },
-    { href: "/staff/prescriptions", icon: ClipboardList, label: "Prescriptions" },
+    { href: "/staff/dashboard", icon: Package,     label: "Dashboard" },
+    { href: "/staff/pharmacy/prescriptions", icon: Pill, label: "Prescriptions" },
+    { href: "/staff/pharmacy/inventory", icon: Package, label: "Inventory & Orders" },
   ],
   insurance: [
-    { href: "/staff/dashboard", icon: ShieldCheck, label: "Dashboard" },
-    { href: "/insurance-admin", icon: ShieldCheck, label: "Claims Review" },
+    { href: "/staff/dashboard",  icon: ShieldCheck, label: "Dashboard" },
+    { href: "/insurance-admin",  icon: ShieldCheck, label: "Claims Review" },
   ],
   medical_center: [
-    { href: "/staff/dashboard", icon: Map, label: "Dashboard" },
-    { href: "/sos/map", icon: Map, label: "SOS Map" },
-    { href: "/medical-records", icon: FileSearch, label: "Medical Records" },
+    { href: "/staff/dashboard", icon: Map,        label: "Dashboard" },
+    { href: "/sos/map",         icon: Map,        label: "SOS Map" },
+    { href: "/medical-records", icon: FileSearch, label: "Patient Records" },
   ],
   // These won't appear in staff sidebar but are needed for type completeness
   student: [],
@@ -38,9 +39,9 @@ const ROLE_NAV: Record<UserRole, { href: string; icon: React.ElementType; label:
 };
 
 const ROLE_COLORS: Partial<Record<UserRole, string>> = {
-  doctor: "from-blue-500 to-cyan-600",
+  doctor: "from-violet-500 to-fuchsia-600",
   pharmacy: "from-emerald-500 to-teal-600",
-  insurance: "from-amber-500 to-orange-600",
+  insurance: "from-amber-500 to-fuchsia-600",
   medical_center: "from-violet-500 to-purple-600",
 };
 
@@ -66,7 +67,7 @@ export default function StaffSidebar() {
   // Find primary staff role
   const primaryRole = STAFF_ROLES.find((r) => hasRole(r)) ?? "doctor";
   const navItems = ROLE_NAV[primaryRole] ?? [];
-  const gradientColor = ROLE_COLORS[primaryRole] ?? "from-blue-500 to-cyan-600";
+  const gradientColor = ROLE_COLORS[primaryRole] ?? "from-violet-500 to-fuchsia-600";
   const roleLabel = ROLE_LABEL[primaryRole] ?? "Staff";
 
   return (
@@ -78,7 +79,7 @@ export default function StaffSidebar() {
         </div>
         <div>
           <p className="font-bold text-white text-base leading-tight">UniWell</p>
-          <p className="text-xs text-blue-400 font-semibold">{roleLabel} Portal</p>
+          <p className="text-xs text-violet-400 font-semibold">{roleLabel} Portal</p>
         </div>
       </div>
 
@@ -93,11 +94,11 @@ export default function StaffSidebar() {
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-blue-500/20 text-blue-300 border border-blue-500/20"
+                  ? "bg-violet-500/20 text-violet-300 border border-violet-500/20"
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <Icon className={cn("w-4 h-4 shrink-0", active ? "text-blue-400" : "")} />
+              <Icon className={cn("w-4 h-4 shrink-0", active ? "text-violet-400" : "")} />
               {label}
             </Link>
           );
@@ -108,11 +109,11 @@ export default function StaffSidebar() {
           className={cn(
             "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
             pathname === "/profile"
-              ? "bg-blue-500/20 text-blue-300 border border-blue-500/20"
+              ? "bg-violet-500/20 text-violet-300 border border-violet-500/20"
               : "text-slate-400 hover:text-white hover:bg-white/5"
           )}
         >
-          <User className={cn("w-4 h-4 shrink-0", pathname === "/profile" ? "text-blue-400" : "")} />
+          <User className={cn("w-4 h-4 shrink-0", pathname === "/profile" ? "text-violet-400" : "")} />
           My Profile
         </Link>
       </nav>

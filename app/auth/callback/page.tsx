@@ -26,7 +26,7 @@ export default function AuthCallbackPage() {
         if (!error) {
           // Force re-init auth state then redirect
           await initAuth(true);
-          router.replace("/dashboard");
+          router.replace("/student/dashboard");
           return;
         }
         console.error("OAuth exchange error:", error.message);
@@ -37,7 +37,7 @@ export default function AuthCallbackPage() {
       const accessToken = hashParams.get("access_token");
       if (accessToken) {
         await initAuth(true);
-        router.replace("/dashboard");
+        router.replace("/student/dashboard");
         return;
       }
 

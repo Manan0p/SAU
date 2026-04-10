@@ -23,8 +23,8 @@ function mapProfile(profile: Record<string, unknown>, email: string): User {
   };
 }
 
-// ─── Email / Password Login ────────────────────────────────────
-export async function loginUser(
+// ─── Base Login (Internal) ──────────────────────────────────────
+async function _baseLogin(
   email: string,
   password: string
 ): Promise<{ success: true; user: User } | { success: false; error: string }> {
@@ -51,18 +51,35 @@ export async function loginUser(
   }
 }
 
+// ─── Student Login ──────────────────────────────────────────────
+export async function loginUser(
+  email: string,
+  password: string
+): Promise<{ success: true; user: User } | { success: false; error: string }> {
+  const result = await _baseLogin(email, password);
+  if (!result.success) return result;
+
+  // Strict separation: Block Staff and Admins from the Student portal
+  const hasStaffOrAdminRole = result.user.roles.some((r) => STAFF_ROLES.includes(r) || ADMIN_ROLES.includes(r));
+  if (hasStaffOrAdminRole) {
+    await supabase.auth.signOut();
+    return { success: false, error: "Staff/Admin must log in through their respective portals." };
+  }
+  return result;
+}
+
 // ─── Staff Login ─────────────────────────────────────────────
 export async function loginStaffUser(
   email: string,
   password: string
 ): Promise<{ success: true; user: User } | { success: false; error: string }> {
-  const result = await loginUser(email, password);
+  const result = await _baseLogin(email, password);
   if (!result.success) return result;
 
   const hasStaffRole = STAFF_ROLES.some((r) => result.user.roles.includes(r));
   if (!hasStaffRole) {
     await supabase.auth.signOut();
-    return { success: false, error: "You don't have staff access. Contact your administrator." };
+    return { success: false, error: "You don't have staff access. Students must use the Student portal." };
   }
   return result;
 }
@@ -72,7 +89,7 @@ export async function loginAdminUser(
   email: string,
   password: string
 ): Promise<{ success: true; user: User } | { success: false; error: string }> {
-  const result = await loginUser(email, password);
+  const result = await _baseLogin(email, password);
   if (!result.success) return result;
 
   if (!result.user.roles.includes("admin")) {
