@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope, Public_Sans } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ToastProvider";
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const publicSans = Public_Sans({
+  subsets: ["latin"],
+  variable: "--font-public-sans",
   display: "swap",
 });
 
@@ -17,8 +23,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full bg-slate-950 text-slate-100 antialiased font-sans" suppressHydrationWarning={true}>
+    <html lang="en" className={`${manrope.variable} ${publicSans.variable} h-full`}>
+      <body className="min-h-full bg-[#F7F9FB] text-[#191C1E] antialiased font-sans" suppressHydrationWarning={true}>
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

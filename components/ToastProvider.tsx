@@ -48,26 +48,26 @@ function ToastContainer({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: st
         <div
           key={t.id}
           className={cn(
-            "flex items-start gap-3 p-4 rounded-xl border shadow-2xl backdrop-blur-md animate-in slide-in-from-right-full duration-300",
+            "flex items-start gap-3 p-4 rounded-xl border shadow-[0_8px_24px_rgba(25,28,30,0.12)] animate-in slide-in-from-right-full duration-300",
             t.variant === "destructive"
-              ? "bg-red-950/90 border-red-500/30 text-red-100"
+              ? "bg-red-50 border-red-200 text-red-800"
               : t.variant === "success"
-              ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-100"
-              : "bg-slate-900/95 border-white/10 text-slate-100"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-white border-[#E6E8EA] text-[#191C1E]"
           )}
         >
           {t.variant === "destructive" ? (
-            <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
           ) : t.variant === "success" ? (
-            <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
           ) : (
-            <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-[#005EB8] shrink-0 mt-0.5" />
           )}
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm">{t.title}</p>
-            {t.description && <p className="text-xs opacity-80 mt-0.5">{t.description}</p>}
+            {t.description && <p className="text-xs opacity-75 mt-0.5">{t.description}</p>}
           </div>
-          <button onClick={() => dismiss(t.id)} className="opacity-60 hover:opacity-100 transition-opacity shrink-0">
+          <button onClick={() => dismiss(t.id)} className="opacity-50 hover:opacity-100 transition-opacity shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>

@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ShieldCheck, CheckCircle, XCircle, Clock, IndianRupee, ChevronDown } from "lucide-react";
+import { ShieldCheck, CheckCircle, XCircle, Clock, IndianRupee, ChevronDown, RefreshCw, ArrowRight, Filter } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getAllClaims } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
-import AuthGuard from "@/components/AuthGuard";
-import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +14,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ToastProvider";
-import { formatDate, formatCurrency } from "@/lib/utils";
+import { formatDate, formatCurrency, cn } from "@/lib/utils";
 import type { Claim } from "@/types";
 
 function InsuranceAdminContent() {
@@ -88,92 +86,117 @@ function InsuranceAdminContent() {
   const badgeVariant = (s: string) => s === "approved" ? "success" as const : s === "rejected" ? "destructive" as const : "warning" as const;
 
   return (
-    <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
-          <ShieldCheck className="w-8 h-8 text-emerald-400" />
-          Claims Review
-        </h1>
-        <p className="text-slate-400">Review and process student insurance claims</p>
+    <div className="p-10 max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-5">
+           <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#fffbeb] text-[#d97706] border border-[#fef3c7] shadow-sm">
+              <ShieldCheck className="w-7 h-7" />
+           </div>
+           <div>
+              <h1 className="text-3xl font-extrabold text-[#191c1e] tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>Claims Review</h1>
+              <p className="text-[#727783] font-medium mt-1">Audit student medical insurance submissions and payouts</p>
+           </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={load} className="gap-2 bg-white border-[#eceef0] hover:bg-[#f2f4f6]" disabled={loading}>
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          Refresh Registry
+        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {[
-          { label: "Total", value: stats.total, icon: ShieldCheck, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
-          { label: "Pending", value: stats.pending, icon: Clock, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-          { label: "Approved", value: stats.approved, icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-          { label: "Rejected", value: stats.rejected, icon: XCircle, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" },
-          { label: "Paid Out", value: formatCurrency(stats.totalValue), icon: IndianRupee, color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
+          { label: "Submissions", value: stats.total, icon: ShieldCheck, color: "#00478d", bg: "#d6e3ff", border: "#cae2fe" },
+          { label: "Awaiting Help", value: stats.pending, icon: Clock, color: "#d97706", bg: "#fffbeb", border: "#fef3c7" },
+          { label: "Clearance", value: stats.approved, icon: CheckCircle, color: "#16a34a", bg: "#f0fdf4", border: "#dcfce7" },
+          { label: "Denied", value: stats.rejected, icon: XCircle, color: "#dc2626", bg: "#fef2f2", border: "#fee2e2" },
+          { label: "Insurance Paid", value: `₹${stats.totalValue.toLocaleString()}`, icon: IndianRupee, color: "#7c3aed", bg: "#f5f3ff", border: "#ede9fe" },
         ].map(({ label, value, icon: Icon, color, bg, border }) => (
-          <Card key={label} className={`border ${border}`}>
-            <CardContent className="p-4">
-              <div className={`w-8 h-8 rounded-lg ${bg} border ${border} flex items-center justify-center mb-2`}>
-                <Icon className={`w-4 h-4 ${color}`} />
-              </div>
-              <p className="text-xl font-bold text-white">{value}</p>
-              <p className="text-xs text-slate-400">{label}</p>
-            </CardContent>
-          </Card>
+          <div key={label} className="bg-white rounded-3xl p-6 border border-[#eceef0] shadow-[0_2px_12px_rgba(25,28,30,0.04)] hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 border" style={{ background: bg, borderColor: border }}>
+              <Icon className="w-5 h-5" style={{ color: color }} />
+            </div>
+            <p className="text-[#727783] text-xs font-bold uppercase tracking-widest">{label}</p>
+            <p className="text-2xl font-bold text-[#191c1e] mt-1" style={{ fontFamily: 'var(--font-manrope)' }}>{value}</p>
+          </div>
         ))}
       </div>
 
-      {/* Filter */}
-      <div className="flex items-center gap-2">
-        {(["all", "pending", "approved", "rejected"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-              filter === f
-                ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
-                : "text-slate-400 hover:text-white border border-transparent hover:border-white/10"
-            }`}
-          >
-            {f} {f === "pending" && stats.pending > 0 ? `(${stats.pending})` : ""}
-          </button>
-        ))}
-      </div>
+      {/* Main Content Area */}
+      <div className="bg-white rounded-3xl border border-[#eceef0] shadow-[0_2px_12px_rgba(25,28,30,0.04)] overflow-hidden">
+        {/* Table Header / Filters */}
+        <div className="px-8 py-6 border-b border-[#eceef0] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#fcfdfe]">
+          <div className="flex items-center gap-3">
+             <Filter className="w-4 h-4 text-[#727783]" />
+             <span className="text-sm font-bold text-[#424752] uppercase tracking-wider">Registry Filters</span>
+          </div>
+          <div className="flex bg-[#f2f4f6] p-1 rounded-xl">
+            {(["all", "pending", "approved", "rejected"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "px-4 py-1.5 rounded-lg text-xs font-bold capitalize transition-all",
+                  filter === f
+                    ? "bg-white text-[#191c1e] shadow-sm"
+                    : "text-[#727783] hover:text-[#191c1e]"
+                )}
+              >
+                {f} {f === "pending" && stats.pending > 0 ? `(${stats.pending})` : ""}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {/* Claims Table */}
-      <Card>
-        <CardContent className="p-0">
+        {/* Table */}
+        <div className="overflow-x-auto">
           {loading ? (
-            <div className="py-16 flex justify-center"><div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+            <div className="py-24 flex flex-col items-center justify-center gap-4">
+               <div className="w-10 h-10 border-4 border-[#005eb8] border-t-transparent rounded-full animate-spin" />
+               <p className="text-[#727783] text-sm font-medium">Fetching clinical claims...</p>
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="py-16 text-center">
-              <ShieldCheck className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-400">No {filter === "all" ? "" : filter} claims</p>
+            <div className="py-24 text-center">
+              <div className="w-16 h-16 rounded-full bg-[#f7f9fb] flex items-center justify-center mx-auto mb-4 border border-[#eceef0]">
+                 <ShieldCheck className="w-8 h-8 text-[#c2c6d4]" />
+              </div>
+              <p className="text-[#727783] font-bold">No Records Found</p>
+              <p className="text-[#727783] text-xs mt-1">There are no {filter === "all" ? "" : filter} claims in the current view.</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
+                <TableRow className="bg-[#fcfdfe] hover:bg-[#fcfdfe] border-b border-[#eceef0]">
+                  <TableHead className="py-4 font-bold text-[#727783] uppercase tracking-wider text-[10px] pl-8">Student Identifier</TableHead>
+                  <TableHead className="py-4 font-bold text-[#727783] uppercase tracking-wider text-[10px]">Medical Concern</TableHead>
+                  <TableHead className="py-4 font-bold text-[#727783] uppercase tracking-wider text-[10px]">Claim Amount</TableHead>
+                  <TableHead className="py-4 font-bold text-[#727783] uppercase tracking-wider text-[10px]">Date Filed</TableHead>
+                  <TableHead className="py-4 font-bold text-[#727783] uppercase tracking-wider text-[10px]">Status</TableHead>
+                  <TableHead className="py-4 font-bold text-[#727783] uppercase tracking-wider text-[10px] text-right pr-8">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((claim) => (
-                  <TableRow key={claim.id} className="hover:bg-white/[0.02]">
-                    <TableCell className="text-xs text-slate-400 font-mono">{claim.userId.slice(0, 8)}…</TableCell>
-                    <TableCell className="max-w-[200px] truncate text-sm">{claim.description}</TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(claim.amount)}</TableCell>
-                    <TableCell className="text-slate-400 text-xs">{formatDate(claim.createdAt)}</TableCell>
-                    <TableCell><Badge variant={badgeVariant(claim.status)}>{claim.status}</Badge></TableCell>
+                  <TableRow key={claim.id} className="hover:bg-[#f7f9fb] transition-colors group">
+                    <TableCell className="pl-8 font-mono text-xs font-bold text-[#005eb8]">{claim.userId.slice(0, 12).toUpperCase()}...</TableCell>
+                    <TableCell className="max-w-[240px] truncate text-sm font-semibold text-[#191c1e]">{claim.description}</TableCell>
+                    <TableCell className="font-bold text-[#191c1e]">{formatCurrency(claim.amount)}</TableCell>
+                    <TableCell className="text-[#727783] text-[11px] font-bold">{formatDate(claim.createdAt)}</TableCell>
                     <TableCell>
+                       <Badge variant={badgeVariant(claim.status)} className="text-[10px] px-2 py-0.5 uppercase tracking-wider font-bold">
+                          {claim.status}
+                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-8">
                       {claim.status === "pending" && (
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => { setSelectedClaim(claim); setApprovedAmount(String(claim.amount)); setReviewStatus("approved"); }}
-                          className="gap-1 text-xs"
+                          className="gap-2 text-xs font-bold text-[#005eb8] hover:bg-[#d6e3ff]/50 h-8 px-4 rounded-lg"
                         >
-                          Review <ChevronDown className="w-3 h-3" />
+                          Review <ChevronDown className="w-3.5 h-3.5" />
                         </Button>
                       )}
                     </TableCell>
@@ -182,76 +205,99 @@ function InsuranceAdminContent() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Review Dialog */}
       <Dialog open={!!selectedClaim} onOpenChange={(o) => { if (!o) { setSelectedClaim(null); setReviewNote(""); setApprovedAmount(""); } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Review Claim</DialogTitle>
-            <DialogDescription>
-              {selectedClaim?.description} — Claimed: {selectedClaim ? formatCurrency(selectedClaim.amount) : ""}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+        <DialogContent className="sm:max-w-lg rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-[#00478d] p-8 text-white relative">
+             <DialogTitle className="text-2xl font-bold" style={{ fontFamily: 'var(--font-manrope)' }}>Clinical Review</DialogTitle>
+             <DialogDescription className="text-[#cae2fe] font-medium mt-1">
+                Audit submission for internal ID: {selectedClaim?.id.slice(0, 8).toUpperCase()}
+             </DialogDescription>
+             <div className="absolute top-8 right-8 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                <ShieldCheck className="w-6 h-6 text-white" />
+             </div>
+          </div>
+          <div className="p-8 space-y-6 bg-white">
+            <div className="p-4 rounded-2xl bg-[#f7f9fb] border border-[#eceef0]">
+               <p className="text-[10px] font-bold text-[#727783] uppercase tracking-widest mb-1">Student Description</p>
+               <p className="text-sm font-bold text-[#191c1e]">{selectedClaim?.description}</p>
+               <div className="mt-3 pt-3 border-t border-[#eceef0] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#727783]">Total Amount Claimed:</span>
+                  <span className="text-lg font-black text-[#191c1e]">{selectedClaim ? formatCurrency(selectedClaim.amount) : ""}</span>
+               </div>
+            </div>
+
             {/* Decision */}
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setReviewStatus("approved")}
-                className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                className={cn(
+                  "py-4 rounded-2xl border-2 text-sm font-bold transition-all flex flex-col items-center gap-2",
                   reviewStatus === "approved"
-                    ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
-                    : "border-white/10 text-slate-400 hover:border-white/20"
-                }`}
+                    ? "bg-[#f0fdf4] border-[#16a34a] text-[#16a34a] shadow-sm"
+                    : "border-[#eceef0] text-[#727783] hover:border-[#16a34a]/30"
+                )}
               >
-                <CheckCircle className="w-4 h-4" /> Approve
+                <CheckCircle className="w-5 h-5" /> 
+                Approve Claim
               </button>
               <button
                 onClick={() => setReviewStatus("rejected")}
-                className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                className={cn(
+                  "py-4 rounded-2xl border-2 text-sm font-bold transition-all flex flex-col items-center gap-2",
                   reviewStatus === "rejected"
-                    ? "bg-red-500/20 border-red-500/40 text-red-300"
-                    : "border-white/10 text-slate-400 hover:border-white/20"
-                }`}
+                    ? "bg-[#fef2f2] border-[#dc2626] text-[#dc2626] shadow-sm"
+                    : "border-[#eceef0] text-[#727783] hover:border-[#dc2626]/30"
+                )}
               >
-                <XCircle className="w-4 h-4" /> Reject
+                <XCircle className="w-5 h-5" />
+                Reject Claim
               </button>
             </div>
 
-            {reviewStatus === "approved" && (
-              <div className="space-y-1.5">
-                <label className="text-xs text-slate-400">Approved Amount (₹)</label>
-                <Input
-                  type="number"
-                  value={approvedAmount}
-                  onChange={(e) => setApprovedAmount(e.target.value)}
-                  placeholder={String(selectedClaim?.amount)}
+            <div className="space-y-4">
+              {reviewStatus === "approved" && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-[#191c1e] px-1 uppercase tracking-wider">Approved Reimbursement (₹)</label>
+                  <Input
+                    type="number"
+                    value={approvedAmount}
+                    onChange={(e) => setApprovedAmount(e.target.value)}
+                    placeholder={String(selectedClaim?.amount)}
+                    className="h-12 rounded-xl bg-[#f7f9fb] border-[#eceef0] focus:ring-[#005eb8] font-bold text-lg"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[#191c1e] px-1 uppercase tracking-wider">Clinical Notes (Visible to Student)</label>
+                <textarea
+                  className="w-full rounded-xl border border-[#eceef0] bg-[#f7f9fb] px-4 py-3 text-sm font-medium text-[#191c1e] placeholder:text-[#c2c6d4] focus:outline-none focus:ring-2 focus:ring-[#005eb8]/20 focus:border-[#005eb8] resize-none h-24"
+                  placeholder={reviewStatus === "approved" ? "The claim has been verified and approved for reimbursement." : "Submission rejected due to insufficient documentation..."}
+                  value={reviewNote}
+                  onChange={(e) => setReviewNote(e.target.value)}
                 />
               </div>
-            )}
-
-            <div className="space-y-1.5">
-              <label className="text-xs text-slate-400">Review Note (sent to student)</label>
-              <textarea
-                className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-                rows={3}
-                placeholder={reviewStatus === "approved" ? "Approved as submitted." : "Claim does not meet coverage criteria…"}
-                value={reviewNote}
-                onChange={(e) => setReviewNote(e.target.value)}
-              />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedClaim(null)}>Cancel</Button>
+          <div className="px-8 pb-8 pt-2 flex items-center justify-end gap-3 bg-white">
+            <Button variant="ghost" onClick={() => setSelectedClaim(null)} className="font-bold text-[#727783] hover:bg-[#eceef0] rounded-xl px-6">
+              Discard
+            </Button>
             <Button
               onClick={handleReview}
               disabled={submitting}
-              className={reviewStatus === "approved" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}
+              className={cn(
+                "font-bold rounded-xl px-8 h-11 text-white shadow-lg transition-all",
+                reviewStatus === "approved" ? "bg-[#16a34a] hover:bg-[#15803d]" : "bg-[#dc2626] hover:bg-[#b91c1c]"
+              )}
             >
-              {submitting ? "Submitting…" : `Confirm ${reviewStatus === "approved" ? "Approval" : "Rejection"}`}
+              {submitting ? "Processing..." : `Confirm ${reviewStatus === "approved" ? "Approval" : "Rejection"}`}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
@@ -261,4 +307,3 @@ function InsuranceAdminContent() {
 export default function InsuranceAdminPage() {
   return <InsuranceAdminContent />;
 }
-

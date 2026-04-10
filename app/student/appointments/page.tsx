@@ -5,10 +5,6 @@ import { CalendarDays, Clock, User, Stethoscope, X, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppointments } from "@/hooks/useAppointments";
 import { MOCK_DOCTORS } from "@/lib/mockData";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -73,112 +69,136 @@ export default function AppointmentsPage() {
   };
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-10 max-w-6xl mx-auto pb-32" style={{ background: "#f7f9fb", minHeight: "100vh" }}>
+      
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-1">Appointments</h1>
-          <p className="text-slate-400">Book and manage your doctor appointments</p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "#d6e3ff" }}>
+            <CalendarDays className="w-6 h-6 text-[#00478d]" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-[#191c1e] tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>Appointments</h1>
+            <p className="text-sm font-medium" style={{ color: "#727783", fontFamily: "var(--font-public-sans)" }}>Book and manage your doctor appointments</p>
+          </div>
         </div>
-        <Button
+        <button
           id="book-appointment-btn"
           onClick={() => { resetBooking(); setBookingOpen(true); }}
-          className="gap-2"
-          size="lg"
+          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all shadow-[0_4px_16px_rgba(0,94,184,0.15)] hover:scale-105"
+          style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}
         >
           <Plus className="w-4 h-4" />
           Book Appointment
-        </Button>
+        </button>
       </div>
 
-      {/* Upcoming */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-violet-400" />
+      {/* Upcoming Section */}
+      <div className="mb-10">
+        <h2 className="text-lg font-bold text-[#191c1e] mb-5 flex items-center gap-2" style={{ fontFamily: 'var(--font-manrope)' }}>
+          <Clock className="w-5 h-5 text-[#00478d]" />
           Upcoming ({upcoming.length})
         </h2>
+        
         {upcoming.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <CalendarDays className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400 mb-2">No upcoming appointments</p>
-              <Button variant="outline" onClick={() => setBookingOpen(true)}>Book your first appointment</Button>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-3xl p-12 text-center flex flex-col items-center shadow-[0_2px_12px_rgba(25,28,30,0.04)]">
+            <div className="w-16 h-16 bg-[#f2f4f6] rounded-2xl flex items-center justify-center mb-4">
+              <CalendarDays className="w-8 h-8 text-[#727783]" />
+            </div>
+            <p className="text-base font-semibold text-[#191c1e] mb-1">No upcoming appointments</p>
+            <p className="text-sm text-[#727783] mb-6">You don't have any medical appointments scheduled at the moment.</p>
+            <button 
+              onClick={() => setBookingOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-[#eceef0] text-[#191c1e] text-sm font-semibold hover:bg-[#e0e3e5] transition-colors"
+            >
+              Book your first appointment
+            </button>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {upcoming.map((appt) => (
-              <Card key={appt.id} className="border-violet-500/10 hover:border-violet-500/30 transition-all duration-200">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                        {getInitials(appt.doctorName.replace("Dr. ", ""))}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-white text-sm">{appt.doctorName}</p>
-                        <p className="text-xs text-slate-400">{appt.specialty}</p>
-                      </div>
+              <div 
+                key={appt.id} 
+                className="bg-white rounded-3xl p-6 relative overflow-hidden group shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0] transition-transform hover:-translate-y-1"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}>
+                      {getInitials(appt.doctorName.replace("Dr. ", ""))}
                     </div>
-                    <Badge variant="default">Booked</Badge>
+                    <div>
+                      <p className="font-bold text-[#191c1e] text-base" style={{ fontFamily: 'var(--font-manrope)' }}>{appt.doctorName}</p>
+                      <p className="text-xs font-semibold text-[#727783]">{appt.specialty}</p>
+                    </div>
                   </div>
-                  <div className="space-y-1.5 mb-4">
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <CalendarDays className="w-3.5 h-3.5" />
-                      {formatDateTime(appt.timeSlot)}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <User className="w-3.5 h-3.5" />
-                      Ref: <span className="font-mono text-slate-300">{appt.id}</span>
-                    </div>
-                    {appt.notes && (
-                      <p className="text-xs text-slate-500 italic">"{appt.notes}"</p>
-                    )}
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#d6e3ff] text-[#00478d]">
+                    Booked
+                  </span>
+                </div>
+                
+                <div className="bg-[#f7f9fb] rounded-2xl p-4 mb-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-[#424752] font-medium">
+                    <CalendarDays className="w-4 h-4 text-[#005eb8]" />
+                    {formatDateTime(appt.timeSlot)}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-red-400 border-red-500/20 hover:bg-red-500/10"
-                    onClick={() => setCancelId(appt.id)}
-                  >
-                    <X className="w-3 h-3 mr-1" />
-                    Cancel
-                  </Button>
-                </CardContent>
-              </Card>
+                  <div className="flex items-center gap-2 text-xs text-[#727783]">
+                    <User className="w-4 h-4 text-[#c2c6d4]" />
+                    Ref: <span className="font-mono text-[#424752]">{appt.id}</span>
+                  </div>
+                  {appt.notes && (
+                    <div className="pt-2 mt-2 border-t border-[#eceef0]">
+                      <p className="text-xs text-[#727783] italic">"{appt.notes}"</p>
+                    </div>
+                  )}
+                </div>
+                
+                <button
+                  onClick={() => setCancelId(appt.id)}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center bg-[#ffdad6] text-[#ba1a1a] hover:bg-[#ffb4ab] transition-colors"
+                >
+                  <X className="w-4 h-4 mr-1.5" />
+                  Cancel Appointment
+                </button>
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Past */}
+      {/* Past Section */}
       {past.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Stethoscope className="w-5 h-5 text-slate-400" />
+          <h2 className="text-lg font-bold text-[#191c1e] mb-5 flex items-center gap-2" style={{ fontFamily: 'var(--font-manrope)' }}>
+            <Stethoscope className="w-5 h-5 text-[#4a6078]" />
             Past Appointments ({past.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {past.map((appt) => (
-              <Card key={appt.id} className="opacity-60">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold">
-                        {getInitials(appt.doctorName.replace("Dr. ", ""))}
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-300 text-sm">{appt.doctorName}</p>
-                        <p className="text-xs text-slate-500">{appt.specialty}</p>
-                      </div>
+              <div 
+                key={appt.id} 
+                className="bg-[#ffffff] rounded-3xl p-5 shadow-[0_2px_12px_rgba(25,28,30,0.02)] border border-[#eceef0] opacity-80"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#eceef0] flex items-center justify-center text-[#424752] text-xs font-bold">
+                      {getInitials(appt.doctorName.replace("Dr. ", ""))}
                     </div>
-                    <Badge variant={appt.status === "completed" ? "success" : "secondary"}>
-                      {appt.status}
-                    </Badge>
+                    <div>
+                      <p className="font-bold text-[#191c1e] text-sm" style={{ fontFamily: 'var(--font-manrope)' }}>{appt.doctorName}</p>
+                      <p className="text-xs text-[#727783] font-medium">{appt.specialty}</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500">{formatDateTime(appt.timeSlot)}</p>
-                </CardContent>
-              </Card>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${appt.status === 'completed' ? 'bg-[#cae2fe] text-[#00478d]' : 'bg-[#e0e3e5] text-[#424752]'}`}>
+                    {appt.status}
+                  </span>
+                </div>
+                <div className="px-1">
+                  <p className="text-xs text-[#727783] font-medium flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    {formatDateTime(appt.timeSlot)}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -186,102 +206,97 @@ export default function AppointmentsPage() {
 
       {/* ── Booking Dialog ────────────────── */}
       <Dialog open={bookingOpen} onOpenChange={(o) => { setBookingOpen(o); if (!o) resetBooking(); }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {step === 1 ? "Select a Doctor" : `Choose Time Slot — ${selectedDoctor?.name}`}
+        <DialogContent className="sm:max-w-2xl rounded-3xl p-8 border-none bg-white shadow-[0_24px_60px_rgba(25,28,30,0.15)]">
+          <DialogHeader className="mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-[#d6e3ff] flex items-center justify-center mb-4">
+               <CalendarDays className="w-6 h-6 text-[#00478d]" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-[#191c1e]" style={{ fontFamily: "var(--font-manrope)" }}>
+              {step === 1 ? "Select a Specialist" : `Book — ${selectedDoctor?.name}`}
             </DialogTitle>
-            <DialogDescription>
-              {step === 1 ? "Pick a specialist for your appointment" : "Select an available slot"}
+            <DialogDescription className="text-sm text-[#727783] mt-2">
+              {step === 1 ? "Choose a campus doctor for your appointment." : "Select an available time slot below."}
             </DialogDescription>
           </DialogHeader>
 
           {step === 1 && (
-            <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2">
               {MOCK_DOCTORS.map((doc) => (
                 <button
                   key={doc.id}
                   id={`doctor-${doc.id}`}
                   onClick={() => { setSelectedDoctor(doc); setStep(2); }}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-violet-500/40 hover:bg-violet-500/10 text-left transition-all duration-200 group"
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-[#f7f9fb] border border-[#eceef0] hover:border-[#cae2fe] hover:shadow-[0_4px_12px_rgba(0,94,184,0.05)] text-left transition-all duration-200 group"
                 >
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm" style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}>
                     {getInitials(doc.name.replace("Dr. ", ""))}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-white text-sm">{doc.name}</p>
-                    <p className="text-xs text-slate-400">{doc.specialty}</p>
-                    <p className="text-xs text-violet-400 mt-1">{doc.available.length} slots available</p>
+                    <p className="font-bold text-[#191c1e] text-base" style={{ fontFamily: 'var(--font-manrope)' }}>{doc.name}</p>
+                    <p className="text-xs font-medium text-[#727783]">{doc.specialty}</p>
+                    <p className="text-xs font-bold text-[#00478d] mt-1 bg-[#d6e3ff] inline-block px-2 py-0.5 rounded-md">{doc.available.length} slots available</p>
                   </div>
-                  <Stethoscope className="w-4 h-4 text-slate-500 group-hover:text-violet-400 transition-colors" />
+                  <Stethoscope className="w-5 h-5 text-[#c2c6d4] group-hover:text-[#005eb8] transition-colors" />
                 </button>
               ))}
             </div>
           )}
 
           {step === 2 && selectedDoctor && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-3">
                 {selectedDoctor.available.map((slot) => (
                   <button
                     key={slot}
                     id={`slot-${slot}`}
                     onClick={() => setSelectedSlot(slot)}
-                    className={`p-3 rounded-xl border text-sm text-left transition-all duration-200 ${
+                    className={`p-4 rounded-2xl border text-left transition-all duration-200 ${
                       selectedSlot === slot
-                        ? "border-violet-500 bg-violet-500/20 text-violet-300"
-                        : "border-white/10 bg-white/5 text-slate-300 hover:border-violet-500/40"
+                        ? "border-[#005eb8] bg-[#cae2fe] shadow-[0_4px_12px_rgba(0,94,184,0.1)]"
+                        : "border-[#e0e3e5] bg-[#f7f9fb] hover:border-[#a9c7ff] hover:bg-white"
                     }`}
                   >
-                    <p className="font-medium">{formatDate(slot)}</p>
-                    <p className="text-xs opacity-70">
+                    <p className="font-bold text-[#191c1e] mb-1" style={{ fontFamily: 'var(--font-manrope)' }}>{formatDate(slot)}</p>
+                    <p className={`text-xs font-medium ${selectedSlot === slot ? "text-[#00478d]" : "text-[#727783]"}`}>
                       {new Date(slot).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </button>
                 ))}
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="notes">Reason for visit (optional)</Label>
+              <div className="space-y-2">
+                <label htmlFor="notes" className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Reason for visit <span className="lowercase tracking-normal">(optional)</span></label>
                 <input
                   id="notes"
-                  className="flex h-11 w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  placeholder="e.g. Fever, knee pain, general checkup…"
+                  className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none"
+                  placeholder="e.g. Fever, general checkup…"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
 
-              <DialogFooter className="gap-2">
-                <Button variant="outline" onClick={() => setStep(1)}>← Back</Button>
-                <Button
+              <DialogFooter className="gap-3 pt-4 flex-row w-full justify-end">
+                <button 
+                   onClick={() => setStep(1)}
+                  className="px-5 py-3 rounded-xl text-sm font-semibold bg-[#eceef0] text-[#424752] hover:bg-[#e0e3e5] transition-colors"
+                >
+                  ← Back
+                </button>
+                <button
                   id="confirm-booking-btn"
                   onClick={handleBook}
                   disabled={!selectedSlot || loading}
+                  className="px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all shadow-[0_4px_16px_rgba(0,94,184,0.15)] disabled:opacity-50"
+                  style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}
                 >
                   {loading ? "Booking…" : "Confirm Appointment"}
-                </Button>
+                </button>
               </DialogFooter>
             </div>
           )}
         </DialogContent>
       </Dialog>
-
-      {/* ── Cancel Confirm Dialog ─────────── */}
-      <Dialog open={!!cancelId} onOpenChange={(o) => { if (!o) setCancelId(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cancel Appointment?</DialogTitle>
-            <DialogDescription>This action cannot be undone. The slot will become available again.</DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setCancelId(null)}>Keep it</Button>
-            <Button variant="destructive" onClick={() => cancelId && handleCancel(cancelId)}>
-              Yes, Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      
     </div>
   );
 }

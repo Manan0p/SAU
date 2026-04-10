@@ -85,29 +85,29 @@ export default function AIChatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 w-80 sm:w-[350px] h-[500px] max-h-[80vh] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden"
+            className="fixed bottom-24 right-6 w-80 sm:w-[360px] h-[500px] max-h-[80vh] bg-white border border-[#E6E8EA] rounded-2xl shadow-[0_12px_40px_rgba(25,28,30,0.12)] flex flex-col z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
+            <div className="bg-gradient-to-r from-[#00478D] to-[#005EB8] p-4 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-blue-500/20 rounded-lg">
-                  <Bot className="w-5 h-5 text-blue-400" />
+                <div className="p-1.5 bg-white/20 rounded-lg">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-100 text-sm">UniWell AI</h3>
-                  <p className="text-xs text-slate-400">Campus Health Assistant</p>
+                  <h3 className="font-semibold text-white text-sm">UniWell AI</h3>
+                  <p className="text-xs text-blue-100">Campus Health Assistant</p>
                 </div>
               </div>
               <button 
                 onClick={toggleChat}
-                className="text-slate-400 hover:text-slate-200 transition-colors bg-slate-700/50 hover:bg-slate-700 p-1.5 rounded-md"
+                className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-md"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-700">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F7F9FB]">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -116,15 +116,15 @@ export default function AIChatbot() {
                   }`}
                 >
                   <div className={`p-1.5 rounded-full flex-shrink-0 ${
-                    msg.role === "user" ? "bg-emerald-500/20 text-emerald-400" : "bg-blue-500/20 text-blue-400"
+                    msg.role === "user" ? "bg-[#005EB8]/10 text-[#005EB8]" : "bg-[#005EB8]/10 text-[#005EB8]"
                   }`}>
                     {msg.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                   </div>
                   <div
-                    className={`p-3 rounded-2xl text-sm ${
+                    className={`p-3 rounded-2xl text-sm max-w-[85%] ${
                       msg.role === "user"
-                        ? "bg-emerald-600 text-white rounded-tr-sm"
-                        : "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700"
+                        ? "bg-gradient-to-br from-[#00478D] to-[#005EB8] text-white rounded-tr-sm"
+                        : "bg-white text-[#191C1E] rounded-tl-sm shadow-[0_1px_4px_rgba(25,28,30,0.08)]"
                     }`}
                   >
                     <div className="whitespace-pre-wrap leading-relaxed">
@@ -135,12 +135,12 @@ export default function AIChatbot() {
               ))}
               {isLoading && (
                 <div className="flex items-start gap-2">
-                  <div className="p-1.5 bg-blue-500/20 rounded-full text-blue-400">
+                  <div className="p-1.5 bg-[#005EB8]/10 rounded-full text-[#005EB8]">
                     <Bot className="w-4 h-4" />
                   </div>
-                  <div className="p-3 rounded-2xl bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700 flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                    <span className="text-xs text-slate-400">Thinking...</span>
+                  <div className="p-3 rounded-2xl bg-white text-[#424752] rounded-tl-sm shadow-[0_1px_4px_rgba(25,28,30,0.08)] flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#005EB8]" />
+                    <span className="text-xs text-[#424752]">Thinking...</span>
                   </div>
                 </div>
               )}
@@ -148,19 +148,19 @@ export default function AIChatbot() {
             </div>
 
             {/* Input Area */}
-            <div className="p-3 border-t border-slate-800 bg-slate-900">
+            <div className="p-3 border-t border-[#E6E8EA] bg-white">
               <form onSubmit={sendMessage} className="flex gap-2">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about symptoms, doctors..."
-                  className="bg-slate-800 border-slate-700 text-sm focus-visible:ring-emerald-500"
+                  className="bg-[#F7F9FB] border-[#E0E3E5] text-[#191C1E] text-sm focus-visible:ring-[#005EB8]"
                   disabled={isLoading}
                 />
                 <Button 
                   type="submit" 
                   size="icon"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white flex-shrink-0"
+                  className="bg-gradient-to-r from-[#00478D] to-[#005EB8] text-white flex-shrink-0"
                   disabled={!input.trim() || isLoading}
                 >
                   <Send className="w-4 h-4" />
@@ -175,7 +175,7 @@ export default function AIChatbot() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 p-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all z-50 flex items-center justify-center"
+        className="fixed bottom-6 right-6 p-4 rounded-full bg-gradient-to-br from-[#00478D] to-[#005EB8] text-white shadow-[0_4px_20px_rgba(0,94,184,0.4)] hover:shadow-[0_4px_28px_rgba(0,94,184,0.6)] transition-all z-50 flex items-center justify-center"
       >
         <MessageCircle className="w-6 h-6" />
       </motion.button>

@@ -36,10 +36,15 @@ export default function AuthGuard({ children, requiredRoles, loginPath = "/login
 
   if (isLoading || !isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
-          <p className="text-slate-400 text-sm">Loading UniWell…</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f9fb" }}>
+        <div className="flex flex-col items-center gap-5">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}>
+            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+          <div className="text-center">
+            <p className="text-[#191c1e] font-bold text-sm">UniWell</p>
+            <p className="text-[#727783] text-xs mt-0.5 font-medium">Verifying session…</p>
+          </div>
         </div>
       </div>
     );

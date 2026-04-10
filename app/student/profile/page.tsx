@@ -1,14 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { User, Save, RefreshCw, Droplets, Stethoscope } from "lucide-react";
+import { User, Save, RefreshCw, Droplets, Stethoscope, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { updateProfile } from "@/lib/auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ToastProvider";
 import { getInitials } from "@/lib/utils";
 
@@ -47,117 +42,164 @@ function ProfileContent() {
   };
 
   return (
-    <div className="p-8 max-w-3xl mx-auto space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-violet-500/30">
-          {user ? getInitials(user.name) : "?"}
+    <div className="p-10 max-w-4xl mx-auto pb-32" style={{ background: "#f7f9fb", minHeight: "100vh" }}>
+      
+      {/* Header Profile Section */}
+      <div className="flex items-center gap-5 mb-10">
+        <div className="w-20 h-20 rounded-[1.25rem] bg-[#d6e3ff] flex items-center justify-center text-[#00478d] text-3xl font-bold shadow-sm" style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}>
+          <span className="text-white">{user ? getInitials(user.name) : "?"}</span>
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-white">{user?.name}</h1>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <h1 className="text-3xl font-bold text-[#191c1e] mb-1.5" style={{ fontFamily: 'var(--font-manrope)' }}>{user?.name}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
             {user?.roles?.map((r) => (
-              <Badge key={r} className="text-xs">{r}</Badge>
+              <span key={r} className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#d6e3ff] text-[#00478d]">
+                {r.replace('_', ' ')}
+              </span>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Personal Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-4 h-4 text-violet-400" />
-            Personal Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <Label>Full Name</Label>
-            <Input value={form.name} onChange={set("name")} placeholder="Your full name" />
+      <div className="space-y-6">
+        {/* Personal Info */}
+        <div className="bg-white rounded-3xl p-8 shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#f2f4f6] flex items-center justify-center">
+              <User className="w-5 h-5 text-[#4a6078]" />
+            </div>
+            <h2 className="text-xl font-bold text-[#191c1e]" style={{ fontFamily: 'var(--font-manrope)' }}>Personal Information</h2>
           </div>
-          <div className="space-y-1.5">
-            <Label>Phone Number</Label>
-            <Input value={form.phone} onChange={set("phone")} placeholder="+91 9876543210" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>College ID</Label>
-            <Input value={form.college_id} onChange={set("college_id")} placeholder="SAU/2024/001" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Email</Label>
-            <Input value={user?.email ?? ""} disabled className="opacity-50 cursor-not-allowed" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Academic Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Stethoscope className="w-4 h-4 text-blue-400" />
-            Academic Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="space-y-1.5">
-            <Label>Class / Year</Label>
-            <Input value={form.class} onChange={set("class")} placeholder="e.g. 3rd Year" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Branch / Programme</Label>
-            <Input value={form.branch} onChange={set("branch")} placeholder="e.g. B.Tech CSE" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Batch</Label>
-            <Input value={form.batch} onChange={set("batch")} placeholder="e.g. 2022–2026" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Medical Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Droplets className="w-4 h-4 text-red-400" />
-            Medical Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-2">
-            <Label>Blood Group</Label>
-            <div className="flex flex-wrap gap-2">
-              {BLOOD_GROUPS.map((bg) => (
-                <button
-                  key={bg}
-                  onClick={() => setForm((f) => ({ ...f, blood_group: bg }))}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                    form.blood_group === bg
-                      ? "bg-red-500/20 border-red-500/40 text-red-300"
-                      : "border-white/10 text-slate-400 hover:border-white/20 hover:text-white"
-                  }`}
-                >
-                  {bg}
-                </button>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Full Name</label>
+              <input 
+                value={form.name} 
+                onChange={set("name")} 
+                placeholder="Your full name" 
+                className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Phone Number</label>
+              <input 
+                value={form.phone} 
+                onChange={set("phone")} 
+                placeholder="+91 9876543210" 
+                className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">College ID</label>
+              <input 
+                value={form.college_id} 
+                onChange={set("college_id")} 
+                placeholder="SAU/2024/001" 
+                className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Email</label>
+              <input 
+                value={user?.email ?? ""} 
+                disabled 
+                className="w-full bg-[#f2f4f6] opacity-70 border border-transparent rounded-xl px-4 py-3 text-sm text-[#424752] cursor-not-allowed"
+              />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Known Medical Conditions / Allergies</Label>
-            <textarea
-              className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-              rows={3}
-              placeholder="e.g. Asthma, Penicillin allergy, Diabetes Type 2…"
-              value={form.medical_conditions}
-              onChange={(e) => setForm((f) => ({ ...f, medical_conditions: e.target.value }))}
-            />
-          </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Button onClick={handleSave} disabled={saving} size="lg" className="gap-2">
-        {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        {saving ? "Saving…" : "Save Profile"}
-      </Button>
+        {/* Academic Info */}
+        <div className="bg-white rounded-3xl p-8 shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#d6e3ff] flex items-center justify-center">
+              <Stethoscope className="w-5 h-5 text-[#00478d]" />
+            </div>
+            <h2 className="text-xl font-bold text-[#191c1e]" style={{ fontFamily: 'var(--font-manrope)' }}>Academic Information</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Class / Year</label>
+              <input 
+                value={form.class} 
+                onChange={set("class")} 
+                placeholder="e.g. 3rd Year" 
+                className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Branch / Programme</label>
+              <input 
+                value={form.branch} 
+                onChange={set("branch")} 
+                placeholder="e.g. B.Tech CSE" 
+                className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Batch</label>
+              <input 
+                value={form.batch} 
+                onChange={set("batch")} 
+                placeholder="e.g. 2022–2026" 
+                className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Medical Info */}
+        <div className="bg-white rounded-3xl p-8 shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#ffdad6] flex items-center justify-center">
+              <Droplets className="w-5 h-5 text-[#ba1a1a]" />
+            </div>
+            <h2 className="text-xl font-bold text-[#191c1e]" style={{ fontFamily: 'var(--font-manrope)' }}>Medical Information</h2>
+          </div>
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Blood Group</label>
+              <div className="flex flex-wrap gap-2">
+                {BLOOD_GROUPS.map((bg) => (
+                  <button
+                    key={bg}
+                    onClick={() => setForm((f) => ({ ...f, blood_group: bg }))}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${
+                      form.blood_group === bg
+                        ? "bg-[#ffdad6] border-[#ffb4ab] text-[#ba1a1a] shadow-sm"
+                        : "bg-[#f7f9fb] border-[#e0e3e5] text-[#424752] hover:border-[#a9c7ff] hover:bg-white"
+                    }`}
+                  >
+                    {bg}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Known Medical Conditions / Allergies</label>
+              <textarea
+                className="w-full bg-[#f7f9fb] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#cae2fe] focus:ring-4 focus:ring-[#cae2fe]/40 transition-all outline-none resize-none"
+                rows={4}
+                placeholder="e.g. Asthma, Penicillin allergy, Diabetes Type 2…"
+                value={form.medical_conditions}
+                onChange={(e) => setForm((f) => ({ ...f, medical_conditions: e.target.value }))}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-4 flex justify-end">
+          <button 
+            onClick={handleSave} 
+            disabled={saving}
+            className="px-8 py-4 rounded-xl text-sm font-bold text-white transition-all shadow-[0_4px_16px_rgba(0,94,184,0.15)] hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+            style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}
+          >
+            {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            {saving ? "Saving Changes…" : "Save Profile"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

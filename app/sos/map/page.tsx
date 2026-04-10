@@ -2,35 +2,32 @@
 
 import { useState, useCallback } from "react";
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
-import { AlertTriangle, CheckCircle, Clock, Map, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Map, RefreshCw, ShieldAlert, ArrowRight, Zap, History, Navigation } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSosMonitor } from "@/hooks/useSos";
-import AuthGuard from "@/components/AuthGuard";
-import Sidebar from "@/components/Sidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ToastProvider";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, cn } from "@/lib/utils";
 import type { SosRequest } from "@/types";
 
 const MAP_CONTAINER_STYLE = { width: "100%", height: "100%" };
-
-// Default center: SAU Delhi campus approximate
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.2090 };
 
 const MAP_OPTIONS: google.maps.MapOptions = {
   styles: [
-    { elementType: "geometry", stylers: [{ color: "#0f172a" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1e293b" }] },
-    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#0f172a" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0c1829" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#1e293b" }] },
+    { elementType: "geometry", stylers: [{ color: "#f7f9fb" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#727783" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#eceef0" }] },
+    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#d1d5db" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#cae2fe" }] },
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#f1f5f9" }] },
   ],
   disableDefaultUI: false,
   zoomControl: true,
@@ -60,78 +57,87 @@ function SosMapContent() {
   const handleRespond = async (sos: SosRequest) => {
     const result = await respond(sos.id);
     if (result.success) {
-      toast({ title: "Marked as Responding", description: "Students notified.", variant: "success" });
+      toast({ title: "Response Protocol Active", description: "Student has been notified of your vector.", variant: "success" });
     } else {
-      toast({ title: "Error", description: result.error, variant: "destructive" });
+      toast({ title: "Signal Error", description: result.error, variant: "destructive" });
     }
     setSelectedSos(null);
   };
 
   const handleResolve = async () => {
     if (!resolveTarget || !user) return;
-    const result = await resolve(resolveTarget.id, user.id, resolveNote || "Resolved by responder");
+    const result = await resolve(resolveTarget.id, user.id, resolveNote || "Resolved by clinical responder");
     if (result.success) {
-      toast({ title: "✅ SOS Resolved", description: "Alert has been closed.", variant: "success" });
+      toast({ title: "✅ Event Resolved", description: "The SOS alert has been securely closed.", variant: "success" });
       setResolveTarget(null);
       setResolveNote("");
       setSelectedSos(null);
     } else {
-      toast({ title: "Error", description: result.error, variant: "destructive" });
+      toast({ title: "Resolution Error", description: result.error, variant: "destructive" });
     }
   };
 
   if (!hasRole("doctor") && !hasRole("medical_center") && !hasRole("admin") && !hasRole("pharmacy")) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Access Restricted</h2>
-          <p className="text-slate-400">SOS Map is only available to authorized responders.</p>
+      <div className="flex-1 flex items-center justify-center bg-[#f7f9fb]">
+        <div className="text-center p-10 bg-white rounded-[3rem] shadow-xl border border-[#eceef0]">
+          <div className="w-20 h-20 rounded-3xl bg-[#fef2f2] flex items-center justify-center mx-auto mb-6">
+             <ShieldAlert className="w-10 h-10 text-[#dc2626]" />
+          </div>
+          <h2 className="text-2xl font-black text-[#191c1e] mb-2" style={{ fontFamily: 'var(--font-manrope)' }}>Access Restricted</h2>
+          <p className="text-[#727783] font-medium max-w-xs mx-auto text-sm">Real-time SOS telemetry is only available to authorized clinical responders.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: "#f7f9fb" }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <Map className="w-6 h-6 text-red-400" />
-          <div>
-            <h1 className="text-2xl font-bold text-white">Global SOS Map</h1>
-            <p className="text-slate-400 text-sm">Real-time emergency monitoring</p>
-          </div>
+      <div className="flex items-center justify-between px-10 py-6 border-b border-[#eceef0] bg-white/80 backdrop-blur-md relative z-10 shadow-sm">
+        <div className="flex items-center gap-5">
+           <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#dc2626] text-white shadow-xl shadow-[#dc2626]/20">
+              <Zap className="w-6 h-6 animate-pulse" />
+           </div>
+           <div>
+              <h1 className="text-2xl font-black text-[#191c1e] tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>Intelligence Command Map</h1>
+              <p className="text-[#727783] text-[10px] font-black uppercase tracking-[0.2em] mt-0.5">Live Telemetry · <span className="text-[#dc2626]">Emergency Priority</span></p>
+           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-4 text-sm">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500 inline-block" />Active</span>
-            <span className="flex items-center gap-1.5 text-slate-400"><span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />Responding</span>
-            <span className="flex items-center gap-1.5 text-slate-400"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />Resolved</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAll(!showAll)}
-            className="gap-2 text-xs"
-          >
-            {showAll ? "Show Active Only" : "Show All"}
-          </Button>
+        
+        <div className="flex items-center gap-6">
+           <div className="hidden lg:flex items-center gap-6 px-6 py-2.5 bg-[#f7f9fb] border border-[#eceef0] rounded-2xl">
+              <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-[#dc2626] animate-ping" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-[#191c1e]">Active</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-[#d97706]" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-[#727783]">Responding</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-[#16a34a]" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-[#727783]">Resolved</span>
+              </div>
+           </div>
+
+           <button
+             onClick={() => setShowAll(!showAll)}
+             className="flex items-center gap-3 px-6 py-3 rounded-2xl border border-[#eceef0] bg-white text-[#424752] hover:text-[#00478d] hover:bg-[#d6e3ff]/10 text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+           >
+             <History className="w-4 h-4" />
+             {showAll ? "Active Stream Only" : "Archive Access"}
+           </button>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Map */}
-        <div className="flex-1 relative">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Map Container */}
+        <div className="flex-1 relative bg-white m-4 rounded-[2.5rem] overflow-hidden border border-[#eceef0] shadow-[0_4px_24px_rgba(25,28,30,0.06)]">
           {!isLoaded ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
-              <div className="text-center">
-                <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-slate-400 text-sm">Loading Google Maps…</p>
-                {!apiKey || apiKey === "YOUR_GOOGLE_MAPS_API_KEY_HERE" && (
-                  <p className="text-amber-400 text-xs mt-2">⚠️ Add your API key to .env.local</p>
-                )}
-              </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#f7f9fb]">
+              <div className="w-16 h-16 border-4 border-[#00478d] border-t-transparent rounded-full animate-spin mb-6" />
+              <p className="text-[#727783] text-[10px] font-black uppercase tracking-[0.3em]">Calibrating Satellite Stream...</p>
             </div>
           ) : (
             <GoogleMap
@@ -149,11 +155,11 @@ function SosMapContent() {
                   onClick={() => setSelectedSos(sos)}
                   icon={{
                     path: google.maps.SymbolPath.CIRCLE,
-                    scale: 12,
-                    fillColor: sos.status === "resolved" ? "#22c55e" : sos.status === "responding" ? "#f59e0b" : "#ef4444",
-                    fillOpacity: 1,
-                    strokeColor: "#fff",
-                    strokeWeight: 2,
+                    scale: 14,
+                    fillColor: sos.status === "resolved" ? "#16a34a" : sos.status === "responding" ? "#d97706" : "#dc2626",
+                    fillOpacity: 0.9,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 4,
                   }}
                 />
               ))}
@@ -163,30 +169,35 @@ function SosMapContent() {
                   position={{ lat: selectedSos.lat, lng: selectedSos.lng }}
                   onCloseClick={() => setSelectedSos(null)}
                 >
-                  <div className="bg-slate-900 text-white p-3 rounded-lg min-w-[220px] space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-bold text-sm">{selectedSos.userName}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        selectedSos.status === "resolved" ? "bg-emerald-500/20 text-emerald-400" :
-                        selectedSos.status === "responding" ? "bg-amber-500/20 text-amber-400" :
-                        "bg-red-500/20 text-red-400"
-                      }`}>{selectedSos.status}</span>
+                  <div className="bg-white text-[#191c1e] p-4 rounded-xl min-w-[260px] shadow-2xl border border-[#eceef0]">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <p className="font-black text-sm tracking-tight">{selectedSos.userName}</p>
+                      <Badge className={cn(
+                        "text-[9px] font-black uppercase tracking-widest border",
+                        selectedSos.status === "resolved" ? "bg-[#f0fdf4] text-[#16a34a] border-[#dcfce7]" :
+                        selectedSos.status === "responding" ? "bg-[#fffbeb] text-[#d97706] border-[#fef3c7]" :
+                        "bg-[#fef2f2] text-[#dc2626] border-[#fee2e2]"
+                      )}>{selectedSos.status}</Badge>
                     </div>
-                    {selectedSos.collegeId && <p className="text-xs text-slate-400">ID: {selectedSos.collegeId}</p>}
-                    {selectedSos.userPhone && <p className="text-xs text-slate-400">📱 {selectedSos.userPhone}</p>}
-                    {selectedSos.message && <p className="text-xs text-slate-300 italic">"{selectedSos.message}"</p>}
-                    <p className="text-xs text-slate-500">{formatDateTime(selectedSos.created_at)}</p>
+                    {selectedSos.userPhone && <p className="text-xs text-[#727783] font-bold flex items-center gap-2 mb-1">
+                      <Navigation className="w-3 h-3 opacity-40" /> {selectedSos.userPhone}
+                    </p>}
+                    {selectedSos.message && <p className="text-xs text-[#424752] italic font-medium bg-[#f7f9fb] p-2 rounded-lg border border-[#eceef0] my-3">
+                       "{selectedSos.message}"
+                    </p>}
+                    <p className="text-[10px] text-[#c2c6d4] font-bold mb-4">{formatDateTime(selectedSos.created_at)}</p>
+                    
                     {selectedSos.status === "active" && (
-                      <div className="flex gap-2 pt-1">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => handleRespond(selectedSos)}
-                          className="flex-1 text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg px-2 py-1.5 transition-colors"
+                          className="flex-1 text-[9px] font-black uppercase tracking-widest bg-[#d97706] text-white hover:bg-[#b45309] rounded-xl px-3 py-2.5 transition-all shadow-lg shadow-[#d97706]/20"
                         >
                           Respond
                         </button>
                         <button
                           onClick={() => { setResolveTarget(selectedSos); setSelectedSos(null); }}
-                          className="flex-1 text-xs bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg px-2 py-1.5 transition-colors"
+                          className="flex-1 text-[9px] font-black uppercase tracking-widest bg-[#16a34a] text-white hover:bg-[#15803d] rounded-xl px-3 py-2.5 transition-all shadow-lg shadow-[#16a34a]/20"
                         >
                           Resolve
                         </button>
@@ -195,9 +206,9 @@ function SosMapContent() {
                     {selectedSos.status === "responding" && (
                       <button
                         onClick={() => { setResolveTarget(selectedSos); setSelectedSos(null); }}
-                        className="w-full text-xs bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg px-2 py-1.5 transition-colors"
+                        className="w-full text-[9px] font-black uppercase tracking-widest bg-[#16a34a] text-white hover:bg-[#15803d] rounded-xl px-3 py-2.5 transition-all shadow-lg shadow-[#16a34a]/20"
                       >
-                        Mark Resolved
+                        Secure Event
                       </button>
                     )}
                   </div>
@@ -207,76 +218,96 @@ function SosMapContent() {
           )}
         </div>
 
-        {/* Sidebar Panel */}
-        <div className="w-80 border-l border-white/5 overflow-y-auto bg-slate-950/80 backdrop-blur">
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-semibold text-white text-sm">
-                {showAll ? "All Alerts" : "Active Alerts"} ({displayed.length})
-              </p>
-              {loading && <RefreshCw className="w-4 h-4 text-slate-500 animate-spin" />}
-            </div>
+        {/* Status Panel */}
+        <div className="w-96 p-4 overflow-y-auto space-y-4">
+           <Card className="rounded-[2.5rem] border-[#eceef0] shadow-[0_4px_24px_rgba(25,28,30,0.04)] bg-white h-full overflow-hidden flex flex-col">
+              <div className="px-8 py-6 border-b border-[#eceef0] flex items-center justify-between bg-[#fcfdfe]">
+                 <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#727783] mb-1">Event Registry</p>
+                    <h3 className="text-lg font-black text-[#191c1e] tracking-tight">{showAll ? "Archive" : "Active Alerts"} ({displayed.length})</h3>
+                 </div>
+                 {loading && <RefreshCw className="w-4 h-4 text-[#00478d] animate-spin" />}
+              </div>
 
-            {displayed.length === 0 ? (
-              <div className="text-center py-10">
-                <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                <p className="text-slate-400 text-sm">No active SOS alerts</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {displayed.map((sos) => (
-                  <button
-                    key={sos.id}
-                    onClick={() => { setSelectedSos(sos); map?.panTo({ lat: sos.lat, lng: sos.lng }); map?.setZoom(17); }}
-                    className="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="text-sm font-semibold text-white truncate">{sos.userName}</p>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-md shrink-0 ${
-                        sos.status === "resolved" ? "bg-emerald-500/20 text-emerald-400" :
-                        sos.status === "responding" ? "bg-amber-500/20 text-amber-400" :
-                        "bg-red-500/20 text-red-400 animate-pulse"
-                      }`}>{sos.status}</span>
+              <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+                 {displayed.length === 0 ? (
+                    <div className="text-center py-20">
+                       <div className="w-16 h-16 rounded-full bg-[#f0fdf4] flex items-center justify-center mx-auto mb-4 border border-[#dcfce7]">
+                          <CheckCircle className="w-8 h-8 text-[#16a34a]" />
+                       </div>
+                       <p className="text-[#191c1e] font-black leading-tight tracking-tight">System All Green</p>
+                       <p className="text-[#727783] text-[10px] font-black uppercase tracking-widest mt-2">Zero active distress signals</p>
                     </div>
-                    {sos.message && <p className="text-xs text-slate-400 truncate italic">"{sos.message}"</p>}
-                    <p className="text-xs text-slate-600 mt-1">
-                      <Clock className="w-3 h-3 inline mr-1" />
-                      {formatDateTime(sos.created_at)}
-                    </p>
-                  </button>
-                ))}
+                 ) : displayed.map((sos) => (
+                    <button
+                      key={sos.id}
+                      onClick={() => { setSelectedSos(sos); map?.panTo({ lat: sos.lat, lng: sos.lng }); map?.setZoom(17); }}
+                      className={cn(
+                        "w-full text-left p-5 rounded-2xl border transition-all relative group overflow-hidden shadow-sm",
+                        sos.status === "active" 
+                          ? "bg-white border-[#fef2f2] hover:border-[#dc2626]/20" 
+                          : "bg-[#fcfdfe] border-[#eceef0] hover:border-[#727783]/20"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                         <div className="flex items-center gap-3">
+                            <div className={cn(
+                               "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black",
+                               sos.status === "active" ? "bg-[#dc2626] text-white shadow-lg shadow-[#dc2626]/20" : "bg-[#eceef0] text-[#727783]"
+                            )}>
+                               {sos.userName?.[0]?.toUpperCase() ?? "U"}
+                            </div>
+                            <p className="font-extrabold text-[#191c1e] text-sm group-hover:text-[#00478d] transition-colors">{sos.userName}</p>
+                         </div>
+                         <Badge className={cn(
+                            "text-[8px] font-black uppercase tracking-widest px-2 py-0.5 border",
+                            sos.status === "resolved" ? "bg-[#f0fdf4] text-[#16a34a] border-[#dcfce7]" :
+                            sos.status === "responding" ? "bg-[#fffbeb] text-[#d97706] border-[#fef3c7]" :
+                            "bg-[#fef2f2] text-[#dc2626] border-[#fee2e2] animate-pulse"
+                         )}>{sos.status}</Badge>
+                      </div>
+                      {sos.message && <p className="text-xs text-[#727783] font-medium italic truncate mb-3">"{sos.message}"</p>}
+                      <div className="flex items-center justify-between text-[10px] font-bold text-[#c2c6d4]">
+                         <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {formatDateTime(sos.created_at)}</span>
+                         <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </button>
+                 ))}
               </div>
-            )}
-          </div>
+           </Card>
         </div>
       </div>
 
       {/* Resolve Dialog */}
       <Dialog open={!!resolveTarget} onOpenChange={(o) => { if (!o) { setResolveTarget(null); setResolveNote(""); } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-emerald-400 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              Resolve SOS Alert
+        <DialogContent className="rounded-[2.5rem] border-[#eceef0] bg-white shadow-2xl p-10 max-w-lg">
+          <DialogHeader className="mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-[#f0fdf4] flex items-center justify-center text-[#16a34a] mb-6 border border-[#dcfce7]">
+               <ShieldAlert className="w-7 h-7" />
+            </div>
+            <DialogTitle className="text-2xl font-black text-[#191c1e]" style={{ fontFamily: 'var(--font-manrope)' }}>
+               Secure Event Vector
             </DialogTitle>
-            <DialogDescription>
-              Mark this emergency as resolved. The student will be notified.
+            <DialogDescription className="text-sm text-[#727783] font-medium mt-2">
+               Classify this emergency event as secure. The student will be notified that the clinical response is complete.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-1.5">
-            <label className="text-xs text-slate-400">Resolution note</label>
-            <textarea
-              className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-              rows={3}
-              placeholder="e.g. Student treated on-site, no ambulance required."
-              value={resolveNote}
-              onChange={(e) => setResolveNote(e.target.value)}
-            />
+
+          <div className="space-y-3">
+             <Label className="text-[10px] font-black uppercase tracking-widest text-[#727783] ml-1">Resolution Intelligence</Label>
+             <textarea
+               className="w-full rounded-2xl border border-[#eceef0] bg-[#fcfdfe] px-5 py-4 text-sm text-[#191c1e] placeholder:text-[#c2c6d4] focus:outline-none focus:ring-2 focus:ring-[#16a34a]/10 resize-none font-medium leading-relaxed"
+               rows={4}
+               placeholder="Document clinical outcome, treatments administered, or rescue details..."
+               value={resolveNote}
+               onChange={(e) => setResolveNote(e.target.value)}
+             />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setResolveTarget(null)}>Cancel</Button>
-            <Button onClick={handleResolve} className="bg-emerald-600 hover:bg-emerald-700">
-              Confirm Resolved
+
+          <DialogFooter className="mt-10 gap-3">
+            <Button variant="ghost" onClick={() => setResolveTarget(null)} className="rounded-xl font-black uppercase text-[10px] tracking-widest text-[#727783]">Abort Resolve</Button>
+            <Button onClick={handleResolve} className="rounded-xl font-black uppercase text-[10px] tracking-widest px-8 bg-[#16a34a] hover:bg-[#15803d] text-white shadow-lg shadow-[#16a34a]/20">
+               Secure Emergency Alert
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -288,4 +319,3 @@ function SosMapContent() {
 export default function SosMapPage() {
   return <SosMapContent />;
 }
-

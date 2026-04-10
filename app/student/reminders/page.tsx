@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { UploadCloud, Clock, Pill, Loader2, Save, Trash2, CheckCircle2 } from "lucide-react";
+import { UploadCloud, Clock, Pill, Loader2, Save, Trash2, CheckCircle2, Activity, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ToastProvider";
 import { Button } from "@/components/ui/button";
@@ -113,7 +113,6 @@ export default function RemindersPage() {
     if (!userId) return;
     setIsSaving(true);
     try {
-      // Find new schedules (no id yet)
       const newSchedules = schedules.filter(s => !s.id).map(s => ({
         userId,
         medicine_name: s.medicine_name,
@@ -128,7 +127,6 @@ export default function RemindersPage() {
       }
       
       toast({ title: "Saved!", description: "Your medication reminders look good.", variant: "success" });
-      // Reload page to get fresh IDs
       window.location.reload();
     } catch(err: any) {
       toast({ title: "Save Error", description: err.message, variant: "destructive" });
@@ -138,131 +136,171 @@ export default function RemindersPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-emerald-500" /></div>;
+    return <div className="p-8 flex justify-center min-h-[50vh] items-center bg-[#f7f9fb]"><Loader2 className="animate-spin w-8 h-8 text-[#005eb8]" /></div>;
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto pb-32">
-      <h1 className="text-3xl font-light text-emerald-400 mb-2 tracking-tight">Medication Reminders</h1>
-      <p className="text-slate-400 mb-8">Add medications manually or upload a prescription to receive web app & email alerts.</p>
+    <div className="p-10 max-w-5xl mx-auto pb-32" style={{ background: "#f7f9fb", minHeight: "100vh" }}>
+      
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#ffdbcb" }}>
+          <Activity className="w-5 h-5 text-[#793100]" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-[#191c1e] tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>Medication Reminders</h1>
+          <p className="text-sm font-medium" style={{ color: "#727783", fontFamily: "var(--font-public-sans)" }}>Add medications manually or upload a prescription.</p>
+        </div>
+      </div>
+      <div className="mb-10" />
 
       {/* Manual Entry Section (Primary) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8">
-        <h3 className="text-lg font-medium text-slate-200 mb-4 flex items-center gap-2">
-          <Pill className="w-5 h-5 text-emerald-500" /> Manually Add Medication
+      <div className="rounded-3xl p-6 mb-8 transition-all duration-300 shadow-[0_2px_12px_rgba(25,28,30,0.04)]" style={{ background: "#ffffff" }}>
+        <h3 className="text-lg font-semibold text-[#191C1E] mb-5 flex items-center gap-2" style={{ fontFamily: "var(--font-manrope)" }}>
+          <Pill className="w-5 h-5 text-[#005eb8]" /> Manually Add Medication
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="md:col-span-1">
-            <label className="block text-xs font-medium text-slate-400 mb-1">Medicine Name</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#727783] mb-1.5" style={{ fontFamily: "var(--font-public-sans)" }}>Medicine Name</label>
             <input 
               value={manualName} 
               onChange={e => setManualName(e.target.value)} 
               placeholder="e.g. Paracetamol"
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-[#f7f9fb] border-none rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:ring-2 focus:ring-[#d6e3ff] transition-all"
             />
           </div>
           <div className="md:col-span-1">
-            <label className="block text-xs font-medium text-slate-400 mb-1">Dosage</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#727783] mb-1.5" style={{ fontFamily: "var(--font-public-sans)" }}>Dosage</label>
             <input 
               value={manualDosage} 
               onChange={e => setManualDosage(e.target.value)} 
               placeholder="e.g. 500mg"
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-[#f7f9fb] border-none rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:ring-2 focus:ring-[#d6e3ff] transition-all"
             />
           </div>
           <div className="md:col-span-1">
-            <label className="block text-xs font-medium text-slate-400 mb-1">Times (comma separated)</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#727783] mb-1.5" style={{ fontFamily: "var(--font-public-sans)" }}>Times</label>
             <input 
               value={manualTimes} 
               onChange={e => setManualTimes(e.target.value)} 
-              placeholder="e.g. 09:00, 21:00"
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+              placeholder="09:00, 21:00"
+              className="w-full bg-[#f7f9fb] border-none rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:ring-2 focus:ring-[#d6e3ff] transition-all"
             />
           </div>
-          <div className="md:col-span-1 flex items-end">
-            <Button onClick={addManualSchedule} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
+          <div className="md:col-span-1">
+            <button 
+              onClick={addManualSchedule}
+              className="w-full text-sm font-semibold text-white rounded-xl py-3 px-4 shadow-[0_4px_16px_rgba(0,94,184,0.15)] transition-all hover:scale-[1.02]"
+              style={{ background: "linear-gradient(135deg, #00478d, #005eb8)" }}
+            >
               Add to List
-            </Button>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Upload Section (Secondary) */}
-      <div className="bg-slate-900 border border-slate-800 border-dashed rounded-2xl p-6 mb-8 text-center flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4 text-left">
-          <div className="p-3 bg-slate-800 rounded-full">
-            <UploadCloud className="w-6 h-6 text-slate-400" />
+      <div 
+        className="rounded-3xl p-6 mb-10 border border-[#e0e3e5] border-dashed bg-[#ffffff] flex flex-col sm:flex-row items-center justify-between gap-6"
+      >
+        <div className="flex items-center gap-5 text-left">
+          <div className="w-14 h-14 bg-[#eceef0] rounded-2xl flex items-center justify-center shrink-0">
+            <UploadCloud className="w-6 h-6 text-[#727783]" />
           </div>
           <div>
-            <h3 className="text-md font-medium text-slate-200">Have a physical prescription?</h3>
-            <p className="text-sm text-slate-500 max-w-sm">
-              Upload it and our AI will automatically extract the medicine names and schedule them for you.
+            <h3 className="text-base font-semibold text-[#191c1e]" style={{ fontFamily: "var(--font-manrope)" }}>Have a physical prescription?</h3>
+            <p className="text-sm text-[#727783]" style={{ fontFamily: "var(--font-public-sans)" }}>
+              Upload it and our AI will automatically extract the medicine names and details.
             </p>
           </div>
         </div>
         
-        <div className="flex flex-col gap-3 min-w-[240px]">
+        <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 bg-[#f7f9fb] p-2 rounded-2xl border border-[#eceef0]">
           <input
             type="file"
             accept="image/*"
             onChange={handleFileUpload}
-            className="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-emerald-400 hover:file:bg-slate-700"
+            className="block w-full text-xs text-[#727783] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#ffffff] file:text-[#005eb8] hover:file:bg-[#eceef0] file:shadow-sm"
           />
-          <Button 
+          <button 
             onClick={extractPrescription} 
             disabled={!file || isExtracting}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-full"
-            variant="outline"
+            className="flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "#d6e3ff", color: "#00478d" }}
           >
-            {isExtracting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-            Auto-Scan Image
-          </Button>
+            {isExtracting ? <Loader2 className="w-4 h-4 animate-spin text-[#00478d]" /> : <ArrowRight className="w-4 h-4 text-[#00478d]" />}
+          </button>
         </div>
       </div>
 
       {/* List Section */}
       <div className="space-y-4">
-        <div className="flex justify-between items-center mb-6">
-           <h3 className="text-xl font-medium text-slate-200 flex items-center gap-2">
-             <Clock className="w-5 h-5 text-emerald-500" /> Your Scheduled Meds
+        <div className="flex justify-between items-center mb-6 px-1">
+           <h3 className="text-xl font-semibold text-[#191c1e] flex items-center gap-2" style={{ fontFamily: 'var(--font-manrope)' }}>
+             <Clock className="w-5 h-5 text-[#00478d]" /> Your Scheduled Meds
            </h3>
-           <Button onClick={saveSchedulesToDB} disabled={isSaving || schedules.length === 0} className="bg-blue-600 hover:bg-blue-500 text-white">
-             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />} Save Changes
-           </Button>
+           <button 
+              onClick={saveSchedulesToDB} 
+              disabled={isSaving || schedules.length === 0}
+              className="flex items-center gap-2 text-sm font-semibold rounded-xl py-2.5 px-5 transition-all text-[#00478d] bg-[#cae2fe] hover:bg-[#d6e3ff] disabled:opacity-50"
+            >
+             {isSaving ? <Loader2 className="w-4 h-4 animate-spin text-[#00478d]" /> : <Save className="w-4 h-4" />} Save Changes
+           </button>
         </div>
 
         {schedules.length === 0 ? (
-          <div className="p-8 border border-dashed border-slate-800 rounded-2xl text-center text-slate-500">
-            No medications scheduled yet. Upload a prescription above!
+          <div className="p-12 rounded-3xl text-center flex flex-col items-center" style={{ background: "#f2f4f6" }}>
+            <div className="w-16 h-16 bg-[#e0e3e5] rounded-2xl flex items-center justify-center mb-4">
+               <Pill className="w-6 h-6 text-[#727783]" />
+            </div>
+            <p className="text-base font-semibold text-[#424752] mb-1">No medications found</p>
+            <p className="text-sm text-[#727783] max-w-sm">
+              Your active medication schedule is currently empty. Add medicines manually above or upload an image of your prescription.
+            </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2">
             {schedules.map((schedule, i) => (
-              <div key={schedule.id || i} className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/50" />
-                <div className="flex justify-between items-start mb-4 pl-3">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 mt-1">
+              <div 
+                key={schedule.id || i} 
+                className="bg-white rounded-3xl p-6 flex flex-col relative overflow-hidden group shadow-[0_2px_12px_rgba(25,28,30,0.04)]"
+                style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+              >
+                {/* Accent line replacing the border */}
+                <div className="absolute top-0 left-0 w-1.5 h-full" style={{ background: "linear-gradient(to bottom, #cae2fe, #005eb8)" }} />
+                
+                <div className="flex justify-between items-start mb-5 pl-2">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-[#d6e3ff] rounded-xl text-[#005eb8] flex items-center justify-center shadow-sm">
                       <Pill className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-lg text-slate-200">{schedule.medicine_name}</h4>
-                      <p className="text-sm text-slate-400">{schedule.dosage}</p>
+                      <h4 className="font-bold text-lg text-[#191c1e]" style={{ fontFamily: "var(--font-manrope)" }}>{schedule.medicine_name}</h4>
+                      <p className="text-sm font-medium text-[#727783]" style={{ fontFamily: "var(--font-public-sans)" }}>{schedule.dosage}</p>
                     </div>
                   </div>
-                  <button onClick={() => removeSchedule(i, schedule.id)} className="text-slate-500 hover:text-red-400 transition-colors p-1">
+                  <button 
+                    onClick={() => removeSchedule(i, schedule.id)} 
+                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#f7f9fb] text-[#c2c6d4] hover:text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 
-                <div className="bg-slate-950 rounded-lg p-3 mt-auto pl-3 border border-slate-800/50 flex flex-wrap gap-2 items-center">
-                  <Clock className="w-4 h-4 text-slate-500" />
+                <div className="bg-[#f7f9fb] rounded-2xl p-3.5 mt-auto pl-2 flex flex-wrap gap-2 items-center">
+                  <Clock className="w-4 h-4 text-[#727783] ml-2 mr-1" />
                   {schedule.times_of_day.map((time, j) => (
-                    <span key={j} className="text-xs font-mono font-medium px-2 py-1 bg-slate-800 text-slate-300 rounded-md">
+                    <span 
+                      key={j} 
+                      className="text-[11px] font-mono font-bold px-2.5 py-1 text-[#001b3d] rounded-lg bg-[#ffffff] shadow-sm border border-[#e0e3e5]"
+                    >
                       {time}
                     </span>
                   ))}
-                  {schedule.id && <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-auto" />}
+                  {schedule.id && (
+                    <div className="ml-auto bg-[#e6e8ea] w-6 h-6 rounded-full flex items-center justify-center">
+                       <CheckCircle2 className="w-4 h-4 text-[#005eb8]" />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -9,19 +9,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-violet-600 text-white hover:bg-violet-700 shadow-lg shadow-violet-500/25 focus-visible:ring-violet-500",
+          "bg-gradient-to-r from-[#00478D] to-[#005EB8] text-white hover:brightness-110 shadow-md shadow-[#005EB8]/20 focus-visible:ring-[#005EB8]",
         destructive:
           "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/25 focus-visible:ring-red-500",
         outline:
-          "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 backdrop-blur-sm",
+          "border border-[#C2C6D4] bg-white text-[#191C1E] hover:bg-[#F2F4F6]",
         secondary:
-          "bg-slate-700 text-slate-100 hover:bg-slate-600",
+          "bg-[#ECE8F0] text-[#005EB8] hover:bg-[#E0E3E5]",
         ghost:
-          "text-slate-300 hover:bg-white/10 hover:text-white",
+          "text-[#424752] hover:bg-[#F2F4F6] hover:text-[#191C1E]",
         link:
-          "text-violet-400 underline-offset-4 hover:underline",
+          "text-[#005EB8] underline-offset-4 hover:underline",
         success:
-          "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25 focus-visible:ring-emerald-500",
+          "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/25 focus-visible:ring-emerald-500",
         warning:
           "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25",
       },

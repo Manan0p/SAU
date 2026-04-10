@@ -6,9 +6,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSos } from "@/hooks/useSos";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -73,21 +70,24 @@ export default function SosPage() {
   };
 
   const statusBadge = (status: string) => {
-    if (status === "active") return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Active</Badge>;
-    if (status === "responding") return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Responding</Badge>;
-    return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Resolved</Badge>;
+    if (status === "active") return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#ba1a1a] text-white">Active</span>;
+    if (status === "responding") return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">Responding</span>;
+    return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#d6e3ff] text-[#00478d]">Resolved</span>;
   };
 
   return (
-    <div className="p-8 min-h-screen space-y-8">
+    <div className="p-10 max-w-6xl mx-auto pb-32" style={{ background: "#f7f9fb", minHeight: "100vh" }}>
+      
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
-          <Siren className="w-8 h-8 text-red-400" />
+      <div className="mb-10 text-center max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-[#191c1e] mb-3 flex items-center justify-center gap-3 tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#ffdad6]">
+            <Siren className="w-6 h-6 text-[#ba1a1a]" />
+          </div>
           Emergency SOS
         </h1>
-        <p className="text-slate-400">
-          Use only in genuine medical emergencies. Your GPS location will be shared with campus health authorities.
+        <p className="text-sm font-medium text-[#727783]" style={{ fontFamily: "var(--font-public-sans)" }}>
+          Use only in genuine medical emergencies. Your GPS location will be immediately shared with campus health authorities.
         </p>
       </div>
 
@@ -95,185 +95,190 @@ export default function SosPage() {
 
         {/* Main SOS Button / Active State */}
         {uiState === "active" && activeSos ? (
-          <Card className="border-red-500/30 bg-red-500/5">
-            <CardContent className="p-6 text-center space-y-4">
-              <div className="relative inline-flex items-center justify-center">
-                <div className="absolute w-28 h-28 rounded-full bg-red-500/20 animate-ping" style={{ animationDuration: "1.5s" }} />
-                <div className="w-20 h-20 rounded-full bg-red-500/30 border-2 border-red-500/50 flex items-center justify-center">
-                  <AlertTriangle className="w-10 h-10 text-red-400" />
-                </div>
+          <div className="bg-[#ba1a1a]/5 border border-[#ba1a1a]/20 rounded-3xl p-8 text-center space-y-5 shadow-[0_4px_24px_rgba(186,26,26,0.05)]">
+            <div className="relative inline-flex items-center justify-center mb-2">
+              <div className="absolute w-32 h-32 rounded-full bg-[#ba1a1a]/15 animate-ping" style={{ animationDuration: "1.5s" }} />
+              <div className="w-24 h-24 rounded-full bg-[#ba1a1a]/10 border-4 border-[#ba1a1a] flex items-center justify-center relative z-10 bg-white">
+                <AlertTriangle className="w-10 h-10 text-[#ba1a1a]" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-red-300 mb-1">SOS Alert Active</h2>
-                <p className="text-slate-400 text-sm">Help is on the way. Stay where you are.</p>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                {statusBadge(activeSos.status)}
-              </div>
-              <div className="text-xs text-slate-500 space-y-1">
-                <p>📍 Location: {activeSos.lat.toFixed(5)}, {activeSos.lng.toFixed(5)}</p>
-                <p>🕐 Sent: {formatDateTime(activeSos.created_at)}</p>
-                {activeSos.accuracy && <p>🎯 Accuracy: ±{Math.round(activeSos.accuracy)}m</p>}
-              </div>
-              <Button
-                variant="outline"
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-[#ba1a1a] mb-1" style={{ fontFamily: 'var(--font-manrope)' }}>SOS Alert Active</h2>
+              <p className="text-[#424752] text-sm font-medium">Help is on the way. Stay where you are.</p>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              {statusBadge(activeSos.status)}
+            </div>
+            <div className="text-sm font-medium text-[#727783] bg-white rounded-2xl p-4 inline-block shadow-sm text-left mx-auto border border-[#f2f4f6]">
+              <p className="mb-1"><span className="text-[#c2c6d4]">📍 Location:</span> {activeSos.lat.toFixed(5)}, {activeSos.lng.toFixed(5)}</p>
+              <p className="mb-1"><span className="text-[#c2c6d4]">🕐 Sent:</span> {formatDateTime(activeSos.created_at)}</p>
+              {activeSos.accuracy && <p><span className="text-[#c2c6d4]">🎯 Accuracy:</span> ±{Math.round(activeSos.accuracy)}m</p>}
+            </div>
+            <div className="pt-2">
+              <button
                 onClick={handleResolve}
-                className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                className="flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-xl text-sm font-bold bg-white text-[#00478d] border border-[#d6e3ff] shadow-sm hover:bg-[#f7f9fb] transition-all"
               >
-                <CheckCircle className="w-4 h-4 mr-2" />
+                <CheckCircle className="w-4 h-4" />
                 I'm Safe — Resolve SOS
-              </Button>
-            </CardContent>
-          </Card>
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="text-center py-12">
-            <div className="relative inline-flex items-center justify-center mb-8">
+            <div className="relative inline-flex items-center justify-center mb-10">
               {uiState !== "sending" && (
                 <>
-                  <div className="absolute w-56 h-56 rounded-full bg-red-500/10 animate-ping" style={{ animationDuration: "1.5s" }} />
-                  <div className="absolute w-44 h-44 rounded-full bg-red-500/15 animate-ping" style={{ animationDuration: "1.8s" }} />
+                  <div className="absolute w-60 h-60 rounded-full bg-[#ffdad6]/50 animate-ping" style={{ animationDuration: "1.5s" }} />
+                  <div className="absolute w-48 h-48 rounded-full bg-[#ffdad6] animate-ping" style={{ animationDuration: "1.8s" }} />
                 </>
               )}
               <button
                 id="sos-button"
                 onClick={handleSosClick}
                 disabled={uiState === "sending" || loading}
-                className="relative w-40 h-40 rounded-full bg-gradient-to-br from-red-500 to-red-700 border-4 border-red-400/30 flex flex-col items-center justify-center shadow-2xl shadow-red-500/40 hover:shadow-red-500/60 hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="relative w-44 h-44 rounded-full bg-gradient-to-br from-[#e63939] to-[#ba1a1a] border-4 border-white flex flex-col items-center justify-center shadow-[0_12px_40px_rgba(186,26,26,0.3)] hover:shadow-[0_16px_50px_rgba(186,26,26,0.4)] hover:scale-[1.03] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
                 aria-label="Activate Emergency SOS"
               >
                 {uiState === "sending" ? (
                   <>
-                    <div className="w-8 h-8 border-2 border-white/40 border-t-white rounded-full animate-spin mb-2" />
-                    <span className="text-white text-xs font-semibold">Locating…</span>
+                    <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin mb-3" />
+                    <span className="text-white text-sm font-bold uppercase tracking-widest">Locating…</span>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="w-12 h-12 text-white mb-1" />
-                    <span className="text-white font-bold text-lg leading-tight">SOS</span>
-                    <span className="text-red-200 text-xs">TAP FOR HELP</span>
+                    <AlertTriangle className="w-12 h-12 text-white mb-2" />
+                    <span className="text-white font-black text-2xl leading-none mb-1 tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>SOS</span>
+                    <span className="text-[#ffdad6] text-xs font-bold uppercase tracking-widest">Tap for help</span>
                   </>
                 )}
               </button>
             </div>
-            <p className="text-slate-400 text-sm max-w-sm mx-auto">
-              Press the button to send your live GPS location and student details to the campus health team.
-            </p>
           </div>
         )}
 
         {/* Emergency Info Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="border-red-500/20">
-            <CardContent className="p-4 text-center">
-              <Phone className="w-6 h-6 text-red-400 mx-auto mb-2" />
-              <p className="text-xs text-slate-400 mb-1">Campus Helpline</p>
-              <p className="text-white font-bold text-sm">1800-SAU-HELP</p>
-            </CardContent>
-          </Card>
-          <Card className="border-violet-500/20">
-            <CardContent className="p-4 text-center">
-              <MapPin className="w-6 h-6 text-violet-400 mx-auto mb-2" />
-              <p className="text-xs text-slate-400 mb-1">Health Center</p>
-              <p className="text-white font-bold text-sm">Block C, Gate 2</p>
-            </CardContent>
-          </Card>
-          <Card className="border-blue-500/20">
-            <CardContent className="p-4 text-center">
-              <Heart className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-              <p className="text-xs text-slate-400 mb-1">Ambulance</p>
-              <p className="text-white font-bold text-sm">112 (National)</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="bg-white rounded-3xl p-5 text-center shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0] transition-transform hover:-translate-y-1">
+            <div className="w-12 h-12 rounded-full bg-[#ffdad6] flex items-center justify-center mx-auto mb-3">
+              <Phone className="w-5 h-5 text-[#ba1a1a]" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#727783] mb-1">Campus Helpline</p>
+            <p className="text-[#191c1e] font-bold text-base" style={{ fontFamily: 'var(--font-manrope)' }}>1800-SAU-HELP</p>
+          </div>
+          <div className="bg-white rounded-3xl p-5 text-center shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0] transition-transform hover:-translate-y-1">
+            <div className="w-12 h-12 rounded-full bg-[#f2f4f6] flex items-center justify-center mx-auto mb-3">
+              <MapPin className="w-5 h-5 text-[#424752]" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#727783] mb-1">Health Center</p>
+            <p className="text-[#191c1e] font-bold text-base" style={{ fontFamily: 'var(--font-manrope)' }}>Block C, Gate 2</p>
+          </div>
+          <div className="bg-white rounded-3xl p-5 text-center shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0] transition-transform hover:-translate-y-1">
+            <div className="w-12 h-12 rounded-full bg-[#d6e3ff] flex items-center justify-center mx-auto mb-3">
+              <Heart className="w-5 h-5 text-[#00478d]" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#727783] mb-1">Ambulance</p>
+            <p className="text-[#191c1e] font-bold text-base" style={{ fontFamily: 'var(--font-manrope)' }}>112x (National)</p>
+          </div>
         </div>
 
         {/* What happens info */}
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-5 h-5 text-violet-400" />
-              <p className="font-semibold text-white">What happens when you press SOS?</p>
+        <div className="bg-white rounded-3xl p-8 shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#f7f9fb] flex items-center justify-center">
+              <Shield className="w-5 h-5 text-[#4a6078]" />
             </div>
-            <div className="space-y-3">
-              {[
-                "Your live GPS location is captured via browser geolocation",
-                `Your student details (${user?.name}, ${user?.college_id ?? user?.studentId}) are included`,
-                "Alert is saved to the system and sent to doctors, pharmacy & medical center",
-                "Nearby users within 100m are notified in real-time",
-                "You receive a confirmation and help team responds",
-              ].map((text, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400 text-xs font-bold shrink-0">
-                    {i + 1}
-                  </div>
-                  <p className="text-sm text-slate-300">{text}</p>
+            <p className="text-xl font-bold text-[#191c1e]" style={{ fontFamily: 'var(--font-manrope)' }}>What happens when you press SOS?</p>
+          </div>
+          <div className="space-y-4">
+            {[
+              "Your live GPS location is captured via browser geolocation",
+              `Your student details (${user?.name}, ${user?.college_id ?? user?.studentId}) are included`,
+              "Alert is saved to the system and sent to doctors, pharmacy & medical center",
+              "Nearby users within 100m are notified in real-time",
+              "You receive a confirmation and help team responds",
+            ].map((text, i) => (
+              <div key={i} className="flex items-start gap-4">
+                <div className="w-7 h-7 rounded-full bg-[#f2f4f6] flex items-center justify-center text-[#4a6078] text-xs font-bold shrink-0 mt-0.5">
+                  {i + 1}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <p className="text-sm font-medium text-[#424752] leading-relaxed">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* SOS History */}
         {history.length > 0 && (
-          <Card>
-            <CardContent className="p-5">
-              <p className="font-semibold text-white mb-4">SOS History</p>
-              <div className="space-y-3">
-                {history.slice(0, 5).map((sos) => (
-                  <div key={sos.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
-                    <div>
-                      <p className="text-xs text-slate-300">{formatDateTime(sos.created_at)}</p>
-                      <p className="text-xs text-slate-500">
-                        📍 {sos.lat.toFixed(4)}, {sos.lng.toFixed(4)}
-                      </p>
-                    </div>
-                    {statusBadge(sos.status)}
+          <div className="bg-white rounded-3xl p-8 shadow-[0_2px_12px_rgba(25,28,30,0.04)] border border-[#eceef0]">
+            <div className="flex items-center gap-3 mb-6">
+              <p className="text-lg font-bold text-[#191c1e]" style={{ fontFamily: 'var(--font-manrope)' }}>SOS History</p>
+            </div>
+            <div className="space-y-3">
+              {history.slice(0, 5).map((sos) => (
+                <div key={sos.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#f7f9fb] border border-[#eceef0]">
+                  <div>
+                    <p className="text-sm font-bold text-[#191c1e] mb-1">{formatDateTime(sos.created_at)}</p>
+                    <p className="text-xs font-medium text-[#727783] flex items-center gap-1.5">
+                      <MapPin className="w-3 h-3 text-[#c2c6d4]" /> {sos.lat.toFixed(4)}, {sos.lng.toFixed(4)}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  {statusBadge(sos.status)}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
       {/* Confirm Dialog */}
       <Dialog open={uiState === "confirming"} onOpenChange={(o) => { if (!o) setUiState("idle"); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-red-400 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
+        <DialogContent className="sm:max-w-md rounded-3xl p-8 border-none bg-white shadow-[0_24px_60px_rgba(186,26,26,0.15)]">
+          <DialogHeader className="mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#ffdad6] flex items-center justify-center mb-4">
+               <AlertTriangle className="w-6 h-6 text-[#ba1a1a]" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-[#191c1e]" style={{ fontFamily: "var(--font-manrope)" }}>
               Confirm Emergency SOS
             </DialogTitle>
-            <DialogDescription>
-              This will immediately alert the SAU Campus Health Team with your live GPS location. Only proceed if this is a genuine emergency.
+            <DialogDescription className="text-sm font-medium text-[#727783] mt-2 leading-relaxed">
+              This will immediately alert the SAU Campus Health Team with your live GPS location. Only proceed if this is a genuine medical emergency.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-3 space-y-2 text-sm text-slate-300">
-            <p>📌 <strong>Name:</strong> {user?.name}</p>
-            <p>🪪 <strong>ID:</strong> {user?.college_id ?? user?.studentId}</p>
-            <p>📱 <strong>Phone:</strong> {user?.phone ?? "Not set"}</p>
-            <p>📍 <strong>Location:</strong> Will be captured from device GPS</p>
-            <p>🕐 <strong>Time:</strong> {new Date().toLocaleTimeString("en-IN")}</p>
+          <div className="py-4 space-y-3 text-sm font-medium text-[#424752] bg-[#f7f9fb] rounded-2xl px-5 border border-[#eceef0] my-4">
+            <p className="flex justify-between items-center"><span className="text-[#a8adb8] text-xs uppercase tracking-widest font-bold">Name</span> <span className="font-bold text-[#191c1e]">{user?.name}</span></p>
+            <p className="flex justify-between items-center"><span className="text-[#a8adb8] text-xs uppercase tracking-widest font-bold">ID</span> <span className="font-mono text-[#191c1e]">{user?.college_id ?? user?.studentId}</span></p>
+            <p className="flex justify-between items-center"><span className="text-[#a8adb8] text-xs uppercase tracking-widest font-bold">Location</span> <span>Captured via GPS</span></p>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs text-slate-400">Optional: Describe the emergency</label>
+          <div className="space-y-2 mb-6">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-[#727783]">Optional Details <span className="lowercase tracking-normal">(e.g. chest pain)</span></label>
             <input
-              className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-              placeholder="e.g. Chest pain, unconscious, broken bone…"
+              className="w-full bg-[#ffffff] border border-[#e0e3e5] rounded-xl px-4 py-3 text-sm text-[#191c1e] placeholder-[#c2c6d4] focus:bg-white focus:border-[#ba1a1a] focus:ring-4 focus:ring-[#ba1a1a]/20 transition-all outline-none"
+              placeholder="Briefly describe what happened…"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setUiState("idle")}>
-              <X className="w-4 h-4 mr-1" /> Cancel
-            </Button>
-            <Button id="confirm-sos-btn" variant="destructive" onClick={handleConfirm}>
-              <AlertTriangle className="w-4 h-4 mr-1" />
+          <DialogFooter className="gap-3 sm:gap-2 flex-col sm:flex-row w-full justify-end">
+            <button
+              onClick={() => setUiState("idle")}
+              className="px-5 py-3 rounded-xl text-sm font-semibold bg-[#eceef0] text-[#424752] hover:bg-[#e0e3e5] transition-colors w-full sm:w-auto text-center"
+            >
+              Cancel
+            </button>
+            <button
+              id="confirm-sos-btn"
+              disabled={loading}
+              onClick={handleConfirm}
+              className="px-6 py-3 rounded-xl text-sm font-bold text-white transition-all shadow-[0_4px_16px_rgba(186,26,26,0.25)] hover:bg-[#e63939] hover:scale-105 disabled:opacity-50 w-full sm:w-auto flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(135deg, #ba1a1a, #e63939)" }}
+            >
+              <AlertTriangle className="w-4 h-4" />
               Yes, Send SOS Alert
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

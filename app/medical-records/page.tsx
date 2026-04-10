@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { FileSearch, Plus, Stethoscope, User } from "lucide-react";
+import { FileSearch, Plus, Stethoscope, User, RefreshCw, ChevronRight, Calendar, Activity, Pill, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getMyMedicalRecords, getAllMedicalRecords, createMedicalRecord } from "@/lib/api";
-import AuthGuard from "@/components/AuthGuard";
-import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +15,7 @@ import {
 import { useToast } from "@/components/ToastProvider";
 import { formatDate, getInitials } from "@/lib/utils";
 import type { MedicalRecord } from "@/types";
+import { cn } from "@/lib/utils";
 
 function MedicalRecordsContent() {
   const { user, hasRole } = useAuth();
@@ -75,62 +74,85 @@ function MedicalRecordsContent() {
   };
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-10 max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
-            <FileSearch className="w-8 h-8 text-blue-400" />
-            Medical Records
-          </h1>
-          <p className="text-slate-400">
-            {isDoctor ? "All patient medical records" : "Your health history"}
-          </p>
+        <div className="flex items-center gap-5">
+           <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#d6e3ff] text-[#00478d] border border-[#cae2fe] shadow-sm">
+              <FileSearch className="w-7 h-7" />
+           </div>
+           <div>
+              <h1 className="text-3xl font-extrabold text-[#191c1e] tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>
+                 Medical Archives
+              </h1>
+              <p className="text-[#727783] font-medium mt-1">
+                {isDoctor ? "Access and manage clinical student health histories" : "View your official clinical health records"}
+              </p>
+           </div>
         </div>
-        {isDoctor && (
-          <Button onClick={() => setAddOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> New Record
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+           <Button variant="outline" size="sm" onClick={load} className="gap-2 bg-white border-[#eceef0] hover:bg-[#f2f4f6]" disabled={loading}>
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              Sync
+           </Button>
+           {isDoctor && (
+             <Button onClick={() => setAddOpen(true)} className="gap-2 bg-[#00478d] hover:bg-[#003a74] text-white rounded-xl h-10 px-5 shadow-lg shadow-[#00478d]/20">
+               <Plus className="w-4 h-4" /> New Entry
+             </Button>
+           )}
+        </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <div className="w-10 h-10 border-4 border-[#005eb8] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[#727783] text-sm font-medium">Securing records...</p>
         </div>
       ) : records.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <FileSearch className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400">No medical records found</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-3xl border border-[#eceef0] p-24 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-[#f7f9fb] flex items-center justify-center mx-auto mb-4 border border-[#eceef0]">
+             <FileSearch className="w-8 h-8 text-[#c2c6d4]" />
+          </div>
+          <p className="text-[#727783] font-bold">No Records Found</p>
+          <p className="text-[#727783] text-xs mt-1">Health history for this profile is currently empty.</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {records.map((r) => (
             <button
               key={r.id}
               onClick={() => setSelectedRecord(r)}
-              className="text-left p-5 rounded-xl bg-slate-900 border border-white/10 hover:border-violet-500/40 hover:bg-violet-500/5 transition-all duration-200 space-y-3"
+              className="text-left p-6 rounded-3xl bg-white border border-[#eceef0] hover:border-[#cae2fe] hover:bg-[#fcfdfe] transition-all duration-300 space-y-4 shadow-[0_2px_12px_rgba(25,28,30,0.04)] hover:shadow-lg group"
             >
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold">
-                    {getInitials(isDoctor ? (r.profiles?.name || "Patient") : r.doctorName.replace("Dr. ", ""))}
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#f2f4f6] flex items-center justify-center text-[#00478d] border border-[#eceef0] group-hover:bg-[#d6e3ff] transition-colors shadow-sm">
+                    <span className="text-sm font-black">{getInitials(isDoctor ? (r.profiles?.name || "Patient") : r.doctorName.replace("Dr. ", ""))}</span>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-bold text-[#191c1e]">
                       {isDoctor ? (r.profiles?.name || r.patientId) : r.doctorName}
                     </p>
-                    <p className="text-xs text-slate-500">{formatDate(r.visitDate)}</p>
+                    <div className="flex items-center gap-1.5 text-[#727783] text-[11px] font-bold mt-0.5 uppercase tracking-wider">
+                       <Calendar className="w-3 h-3" />
+                       {formatDate(r.visitDate)}
+                    </div>
                   </div>
                 </div>
+                <ChevronRight className="w-4 h-4 text-[#c2c6d4] group-hover:text-[#00478d] transition-colors" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-300 truncate">{r.diagnosis}</p>
-                {r.treatment && <p className="text-xs text-slate-500 truncate mt-0.5">{r.treatment}</p>}
+              
+              <div className="pt-2">
+                <p className="text-xs font-bold text-[#727783] uppercase tracking-widest mb-1 opacity-60">Primary Diagnosis</p>
+                <p className="text-sm font-extrabold text-[#424752] line-clamp-2 leading-relaxed h-[40px]">{r.diagnosis}</p>
               </div>
+
               {r.prescription && (
-                <Badge className="text-xs bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Prescription attached</Badge>
+                <div className="flex items-center gap-2 pt-2">
+                   <Badge className="text-[10px] bg-[#f0fdf4] text-[#16a34a] border-[#dcfce7] font-bold uppercase tracking-wider py-0.5 px-2">
+                      <Pill className="w-2.5 h-2.5 mr-1" />
+                      Prescription
+                   </Badge>
+                </div>
               )}
             </button>
           ))}
@@ -139,91 +161,116 @@ function MedicalRecordsContent() {
 
       {/* Record Detail Dialog */}
       <Dialog open={!!selectedRecord} onOpenChange={(o) => { if (!o) setSelectedRecord(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Medical Record Details</DialogTitle>
-            <DialogDescription>Visit on {selectedRecord ? formatDate(selectedRecord.visitDate) : ""}</DialogDescription>
-          </DialogHeader>
-          {selectedRecord && (
-            <div className="space-y-4 text-sm">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
-                <User className="w-5 h-5 text-violet-400 shrink-0" />
-                <div>
-                  <p className="text-xs text-slate-400">{isDoctor ? "Patient" : "Doctor"}</p>
-                  <p className="text-white font-medium">
-                    {isDoctor ? (selectedRecord.profiles?.name || selectedRecord.patientId) : selectedRecord.doctorName}
+        <DialogContent className="sm:max-w-lg rounded-3xl p-0 overflow-hidden border-none shadow-2xl animate-in zoom-in-95">
+          <div className="bg-[#00478d] p-8 text-white relative">
+             <DialogTitle className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-manrope)' }}>Record Insights</DialogTitle>
+             <DialogDescription className="text-[#cae2fe] font-medium mt-1 text-white/75">
+                Clinical log from {selectedRecord ? formatDate(selectedRecord.visitDate) : ""}
+             </DialogDescription>
+             <div className="absolute top-8 right-8 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                <Activity className="w-6 h-6 text-white" />
+             </div>
+          </div>
+          
+          <div className="p-8 space-y-6 bg-white overflow-y-auto max-h-[70vh]">
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#f7f9fb] border border-[#eceef0]">
+               <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-[#00478d] border border-[#eceef0] shadow-sm">
+                  <UserCheck className="w-6 h-6" />
+               </div>
+               <div>
+                  <p className="text-[10px] font-bold text-[#727783] uppercase tracking-widest leading-none mb-1">{isDoctor ? "Patient Identity" : "Consulting Physician"}</p>
+                  <p className="text-base font-bold text-[#191c1e]">
+                    {isDoctor ? (selectedRecord?.profiles?.name || selectedRecord?.patientId) : selectedRecord?.doctorName}
                   </p>
-                </div>
-              </div>
+               </div>
+            </div>
+
+            <div className="space-y-5">
               <div className="space-y-1">
-                <p className="text-xs text-slate-400 uppercase tracking-wide">Diagnosis</p>
-                <p className="text-white">{selectedRecord.diagnosis}</p>
+                <p className="text-[11px] font-bold text-[#727783] uppercase tracking-widest opacity-70">Clinical Diagnosis</p>
+                <p className="text-[#191c1e] font-bold text-lg leading-tight">{selectedRecord?.diagnosis}</p>
               </div>
-              {selectedRecord.treatment && (
+
+              {selectedRecord?.treatment && (
                 <div className="space-y-1">
-                  <p className="text-xs text-slate-400 uppercase tracking-wide">Treatment</p>
-                  <p className="text-white">{selectedRecord.treatment}</p>
+                  <p className="text-[11px] font-bold text-[#727783] uppercase tracking-widest opacity-70">Treatment Regimen</p>
+                  <p className="text-[#424752] font-semibold leading-relaxed">{selectedRecord?.treatment}</p>
                 </div>
               )}
-              {selectedRecord.prescription && (
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-400 uppercase tracking-wide">Prescription</p>
-                  <p className="text-emerald-300 font-mono text-xs bg-emerald-500/10 p-3 rounded-lg">{selectedRecord.prescription}</p>
+
+              {selectedRecord?.prescription && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-bold text-[#727783] uppercase tracking-widest opacity-70">Medication Orders</p>
+                  <div className="bg-[#f0fdf4] text-[#16a34a] font-mono text-xs p-4 rounded-2xl border border-[#dcfce7] leading-relaxed shadow-inner">
+                    {selectedRecord?.prescription}
+                  </div>
                 </div>
               )}
-              {selectedRecord.notes && (
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-400 uppercase tracking-wide">Notes</p>
-                  <p className="text-slate-300 italic">{selectedRecord.notes}</p>
+
+              {selectedRecord?.notes && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-bold text-[#727783] uppercase tracking-widest opacity-70">Internal Physician Notes</p>
+                  <div className="bg-[#fcfdfe] p-4 rounded-2xl border border-[#eceef0] italic text-[#727783] text-sm font-medium leading-relaxed">
+                    "{selectedRecord?.notes}"
+                  </div>
                 </div>
               )}
             </div>
-          )}
+          </div>
+          <div className="p-6 bg-[#fcfdfe] border-t border-[#eceef0] flex justify-end">
+             <Button onClick={() => setSelectedRecord(null)} className="rounded-xl px-8 font-bold bg-[#191c1e] hover:bg-black text-white h-11">
+                Close Record
+             </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Create Record Dialog (doctors only) */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Create Medical Record</DialogTitle>
-            <DialogDescription>Fill in the details for the patient visit.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Patient ID (UUID from profiles)</Label>
-              <Input value={form.patientId} onChange={(e) => setForm(f => ({ ...f, patientId: e.target.value }))} placeholder="Patient's Supabase UUID" required />
+        <DialogContent className="sm:max-w-lg rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-[#00478d] p-8 text-white relative">
+             <DialogTitle className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-manrope)' }}>New Entry</DialogTitle>
+             <DialogDescription className="text-white/75 font-medium mt-1">Create an official clinical health record for a student</DialogDescription>
+             <div className="absolute top-8 right-8 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                <Plus className="w-6 h-6 text-white" />
+             </div>
+          </div>
+          <form onSubmit={handleCreate} className="p-8 space-y-5 bg-white">
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-1.5 col-span-1">
+                 <Label className="text-xs font-bold text-[#191c1e] uppercase tracking-wide px-1">Patient UUID</Label>
+                 <Input value={form.patientId} onChange={(e) => setForm(f => ({ ...f, patientId: e.target.value }))} placeholder="UUID..." required className="rounded-xl h-11 bg-[#f7f9fb] border-[#eceef0]" />
+               </div>
+               <div className="space-y-1.5 col-span-1">
+                 <Label className="text-xs font-bold text-[#191c1e] uppercase tracking-wide px-1">Visit Date</Label>
+                 <Input type="date" value={form.visitDate} onChange={(e) => setForm(f => ({ ...f, visitDate: e.target.value }))} required className="rounded-xl h-11 bg-[#f7f9fb] border-[#eceef0]" />
+               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Visit Date</Label>
-              <Input type="date" value={form.visitDate} onChange={(e) => setForm(f => ({ ...f, visitDate: e.target.value }))} required />
+              <Label className="text-xs font-bold text-[#191c1e] uppercase tracking-wide px-1">Primary Diagnosis *</Label>
+              <Input value={form.diagnosis} onChange={(e) => setForm(f => ({ ...f, diagnosis: e.target.value }))} placeholder="e.g. Viral infection" required className="rounded-xl h-11 bg-[#f7f9fb] border-[#eceef0]" />
             </div>
             <div className="space-y-1.5">
-              <Label>Diagnosis *</Label>
-              <Input value={form.diagnosis} onChange={(e) => setForm(f => ({ ...f, diagnosis: e.target.value }))} placeholder="e.g. Viral fever" required />
+              <Label className="text-xs font-bold text-[#191c1e] uppercase tracking-wide px-1">Treatment Regimen</Label>
+              <Input value={form.treatment} onChange={(e) => setForm(f => ({ ...f, treatment: e.target.value }))} placeholder="e.g. Fluids and rest" className="rounded-xl h-11 bg-[#f7f9fb] border-[#eceef0]" />
             </div>
             <div className="space-y-1.5">
-              <Label>Treatment</Label>
-              <Input value={form.treatment} onChange={(e) => setForm(f => ({ ...f, treatment: e.target.value }))} placeholder="e.g. Rest, fluids, paracetamol" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Prescription</Label>
+              <Label className="text-xs font-bold text-[#191c1e] uppercase tracking-wide px-1">Medication Orders</Label>
               <textarea
-                className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-                rows={2}
-                placeholder="e.g. Paracetamol 500mg x3/day for 3 days"
+                className="w-full rounded-2xl border border-[#eceef0] bg-[#f7f9fb] px-4 py-3 text-sm font-medium text-[#191c1e] placeholder:text-[#c2c6d4] focus:outline-none focus:ring-2 focus:ring-[#005eb8]/20 focus:border-[#005eb8] resize-none h-20"
+                placeholder="Dosages, frequency, duration..."
                 value={form.prescription}
                 onChange={(e) => setForm(f => ({ ...f, prescription: e.target.value }))}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Additional Notes</Label>
-              <Input value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Follow-up in 3 days if no improvement" />
+              <Label className="text-xs font-bold text-[#191c1e] uppercase tracking-wide px-1">Internal Notes</Label>
+              <Input value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observations..." className="rounded-xl h-11 bg-[#f7f9fb] border-[#eceef0]" />
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-              <Button type="submit">Create Record</Button>
-            </DialogFooter>
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <Button type="button" variant="ghost" onClick={() => setAddOpen(false)} className="rounded-xl font-bold text-[#727783]">Cancel</Button>
+              <Button type="submit" className="rounded-xl px-10 font-bold bg-[#00478d] hover:bg-[#003a74] text-white h-11 shadow-lg shadow-[#00478d]/20">Store Record</Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
@@ -234,4 +281,3 @@ function MedicalRecordsContent() {
 export default function MedicalRecordsPage() {
   return <MedicalRecordsContent />;
 }
-

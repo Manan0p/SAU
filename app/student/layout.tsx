@@ -13,9 +13,9 @@ import AIChatbot from "@/components/AIChatbot";
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard loginPath="/login">
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen bg-[#F7F9FB]">
         <Sidebar />
-        <main className="flex-1 ml-64 min-h-screen overflow-y-auto">
+        <main className="flex-1 ml-64 min-h-screen overflow-y-auto bg-[#F7F9FB]">
           {children}
           <AIChatbot />
         </main>
