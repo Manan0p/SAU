@@ -59,6 +59,10 @@ export default function InsurancePage() {
       toast({ title: "Invalid amount", description: "Enter a positive number.", variant: "destructive" });
       return;
     }
+    if (!fileName.trim()) {
+      toast({ title: "Bill Required", description: "You must attach a bill or receipt to submit a claim.", variant: "destructive" });
+      return;
+    }
 
     const result = await submit({
       userId,
@@ -222,7 +226,7 @@ export default function InsurancePage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Upload Bill (optional)</Label>
+              <Label>Upload Bill *</Label>
               <label
                 htmlFor="claim-file"
                 className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/10 bg-slate-800/40 cursor-pointer hover:border-violet-500/40 transition-colors"

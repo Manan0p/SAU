@@ -181,7 +181,7 @@ export default function SosPage() {
             <CardContent className="p-4 text-center">
               <Heart className="w-6 h-6 text-blue-400 mx-auto mb-2" />
               <p className="text-xs text-slate-400 mb-1">Ambulance</p>
-              <p className="text-white font-bold text-sm">108 (National)</p>
+              <p className="text-white font-bold text-sm">112 (National)</p>
             </CardContent>
           </Card>
         </div>
