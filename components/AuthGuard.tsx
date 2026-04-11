@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserRole } from "@/types";
+import OnboardingModal from "@/components/OnboardingModal";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -14,8 +15,10 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children, requiredRoles, loginPath = "/login" }: AuthGuardProps) {
-  const { isAuthenticated, isLoading, isInitialized, initAuth, hasRole } = useAuth();
+  const { user, isAuthenticated, isLoading, isInitialized, initAuth, hasRole } = useAuth();
   const router = useRouter();
+  
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -30,9 +33,28 @@ export default function AuthGuard({ children, requiredRoles, loginPath = "/login
       } else if (requiredRoles && !requiredRoles.some((r) => hasRole(r))) {
         // Authenticated but wrong role
         router.replace(loginPath);
+      } else if (user) {
+        // Check Onboarding status and trigger modal instead of redirecting
+        const isProfileComplete = 
+          !!user.phone && 
+          !!user.college_id && 
+          !!user.class && 
+          !!user.branch && 
+          !!user.batch && 
+          !!user.blood_group;
+
+        if (!isProfileComplete) {
+           if (hasRole("student")) {
+             setShowOnboarding(true);
+           } else {
+             if (localStorage.getItem("onboarding_skipped") !== "true") {
+                setShowOnboarding(true);
+             }
+           }
+        }
       }
     }
-  }, [isLoading, isAuthenticated, isInitialized, router, requiredRoles, hasRole, loginPath]);
+  }, [isLoading, isAuthenticated, isInitialized, router, requiredRoles, hasRole, loginPath, user]);
 
   if (isLoading || !isInitialized) {
     return (
@@ -53,5 +75,10 @@ export default function AuthGuard({ children, requiredRoles, loginPath = "/login
   if (!isAuthenticated) return null;
   if (requiredRoles && !requiredRoles.some((r) => hasRole(r))) return null;
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
+    </>
+  );
 }

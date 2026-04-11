@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Pill, CheckCircle, RefreshCw } from "lucide-react";
+import { Pill, CheckCircle, RefreshCw, FileSearch, Stethoscope } from "lucide-react";
 import { getInventory, getAllPrescriptions, updatePrescriptionStatus, updateInventoryQuantity } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ToastProvider";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import type { InventoryItem, Prescription } from "@/types";
 
 export default function StaffPharmacyPage() {
@@ -55,9 +55,11 @@ export default function StaffPharmacyPage() {
           </div>
           <div>
             <h1 className="text-3xl font-extrabold text-[#191c1e] tracking-tight" style={{ fontFamily: "var(--font-manrope)" }}>
-              Prescriptions
+              Prescription Registry
             </h1>
-            <p className="text-[#727783] font-medium mt-1">View and dispense student prescriptions</p>
+            <p className="text-[#727783] font-semibold mt-1">
+               Systemized Medication Dispensing · <span className="text-[#059669] font-bold">Encrypted Queue</span>
+            </p>
           </div>
         </div>
         <Button
@@ -80,6 +82,7 @@ export default function StaffPharmacyPage() {
             color: "text-[#d97706]",
             border: "border-[#fef3c7]",
             bg: "bg-[#fffbeb]",
+            icon: FileSearch
           },
           {
             label: "Total Prescriptions",
@@ -87,13 +90,16 @@ export default function StaffPharmacyPage() {
             color: "text-[#16a34a]",
             border: "border-[#dcfce7]",
             bg: "bg-[#f0fdf4]",
+            icon: CheckCircle
           },
-        ].map(({ label, value, color, border, bg }) => (
-          <Card key={label} className={`border ${border} bg-white rounded-3xl shadow-[0_2px_12px_rgba(25,28,30,0.04)]`}>
-            <CardContent className="p-5">
-              <div className={`w-10 h-10 rounded-xl ${bg} border ${border} mb-4`} />
-              <p className={`text-3xl font-bold ${color} mb-1`} style={{ fontFamily: "var(--font-manrope)" }}>{value}</p>
-              <p className="text-xs text-[#727783] font-bold uppercase tracking-widest">{label}</p>
+        ].map(({ label, value, color, border, bg, icon: Icon }) => (
+          <Card key={label} className={`border border-[#eceef0] bg-white rounded-[2rem] shadow-[0_4px_20px_rgba(25,28,30,0.04)] group hover:shadow-xl transition-all duration-300`}>
+            <CardContent className="p-6">
+              <div className={`w-12 h-12 rounded-xl scale-75 md:scale-100 flex items-center justify-center transition-transform group-hover:scale-110 mb-5 border ${bg} ${border}`}>
+                 <Icon className={`w-6 h-6 ${color}`} />
+              </div>
+              <p className="text-[#727783] text-[10px] font-black uppercase tracking-[0.2em] mb-1">{label}</p>
+              <p className={`text-4xl font-black text-[#191c1e]`} style={{ fontFamily: "var(--font-manrope)" }}>{loading ? "—" : value}</p>
             </CardContent>
           </Card>
         ))}
@@ -105,9 +111,18 @@ export default function StaffPharmacyPage() {
           <p className="text-[#727783] text-sm font-medium">Loading prescriptions...</p>
         </div>
       ) : (
-        <Card className="bg-white rounded-3xl border border-[#eceef0] shadow-[0_2px_12px_rgba(25,28,30,0.04)] overflow-hidden">
-          <div className="px-8 py-5 border-b border-[#eceef0] bg-[#fcfdfe]">
-            <h3 className="text-lg font-bold text-[#191c1e]" style={{ fontFamily: "var(--font-manrope)" }}>Prescription Queue</h3>
+        <Card className="bg-white rounded-[2.5rem] border border-[#eceef0] shadow-[0_4px_24px_rgba(25,28,30,0.06)] overflow-hidden">
+          <div className="px-10 py-8 border-b border-[#eceef0] flex items-center justify-between bg-[#fcfdfe]">
+            <div className="flex items-center gap-3">
+               <Pill className="w-5 h-5 text-[#059669]" />
+               <h3 className="text-lg font-extrabold text-[#191c1e]" style={{ fontFamily: "var(--font-manrope)" }}>
+                  Medication Queue <span className="text-[#c2c6d4] font-bold ml-2">({prescriptions.length})</span>
+               </h3>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#059669] flex items-center gap-2">
+               <div className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
+               Live Inventory Sync
+            </span>
           </div>
           <CardContent className="p-0">
             {prescriptions.length === 0 ? (
@@ -133,38 +148,56 @@ export default function StaffPharmacyPage() {
                   </TableHeader>
                   <TableBody>
                     {prescriptions.map((p) => (
-                      <TableRow key={p.id} className="border-[#eceef0] hover:bg-[#fcfdfe] transition-colors">
-                        <TableCell className="font-semibold text-sm text-[#191c1e]">{p.patientName}</TableCell>
-                        <TableCell className="text-xs text-[#727783] font-medium">{p.doctorName}</TableCell>
-                        <TableCell>
-                          <div className="space-y-0.5">
+                      <TableRow key={p.id} className="border-[#eceef0] hover:bg-[#f7f9fb] transition-all group border-l-[3px] border-l-transparent hover:border-l-[#059669]">
+                        <TableCell className="px-10 py-6">
+                           <p className="font-black text-[#191c1e] text-base group-hover:text-[#059669] transition-colors" style={{ fontFamily: "var(--font-manrope)" }}>{p.patientName}</p>
+                           <p className="text-[10px] text-[#727783] font-medium uppercase tracking-wider mt-1.5 flex items-center gap-2">
+                              <Stethoscope className="w-3 h-3 opacity-40" /> Dr. {p.doctorName.replace("Dr. ", "")}
+                           </p>
+                        </TableCell>
+                        <TableCell className="py-6">
+                          <div className="space-y-1.5">
                             {p.medicines.map((m, i) => (
-                              <p key={i} className="text-xs text-[#727783]">{m.name} · {m.dosage} · {m.duration}</p>
+                              <div key={i} className="flex items-center gap-2">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-[#059669]/60 shrink-0" />
+                                 <p className="text-sm font-bold text-[#4a6078]">{m.name}</p>
+                                 <span className="text-[10px] font-black uppercase tracking-widest bg-[#f2f4f6] px-2 py-0.5 rounded-md border border-[#eceef0] text-[#727783] ml-1">{m.dosage}</span>
+                              </div>
                             ))}
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs text-[#727783] font-medium">{formatDate(p.created_at)}</TableCell>
-                        <TableCell>
-                          <Badge className={
+                        <TableCell className="py-6">
+                           <div className="flex flex-col">
+                              <span className="text-[10px] font-black text-[#c2c6d4] uppercase tracking-widest mb-1">Prescribed</span>
+                              <span className="text-xs font-bold text-[#727783]">{formatDate(p.created_at)}</span>
+                           </div>
+                        </TableCell>
+                        <TableCell className="py-6">
+                          <Badge className={cn(
+                            "px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-[0.2em] shadow-sm transition-all group-hover:bg-white",
                             p.status === "dispensed"
-                              ? "bg-[#f0fdf4] text-[#16a34a] border-[#dcfce7] text-[10px] uppercase tracking-wider font-bold"
-                              : "bg-[#fffbeb] text-[#d97706] border-[#fef3c7] text-[10px] uppercase tracking-wider font-bold"
-                          }>
+                              ? "bg-[#f0fdf4] text-[#16a34a] border-[#dcfce7]"
+                              : "bg-[#fffbeb] text-[#d97706] border-[#fef3c7]"
+                          )}>
+                            <div className={cn("w-1.5 h-1.5 rounded-full mr-2", p.status === 'dispensed' ? "bg-green-500" : "bg-orange-500")} />
                             {p.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="px-10 py-6 text-right">
                           {p.status === "pending" ? (
                             <Button
                               size="sm"
                               onClick={() => handleDispense(p)}
                               disabled={dispenseLoading === p.id}
-                              className="text-xs font-bold bg-[#16a34a] hover:bg-[#15803d] rounded-xl h-8 px-4"
+                              className="text-[10px] font-black uppercase tracking-widest bg-[#059669] hover:bg-[#047857] text-white rounded-xl h-10 px-6 shadow-[0_4px_12px_rgba(5,150,105,0.2)] hover:shadow-[0_8px_20px_rgba(5,150,105,0.3)] transition-all"
                             >
-                              {dispenseLoading === p.id ? "..." : "Dispense"}
+                              {dispenseLoading === p.id ? "Processing..." : "Dispense"}
                             </Button>
                           ) : (
-                            <span className="text-xs text-[#c2c6d4] font-bold">-</span>
+                            <div className="flex items-center justify-end gap-2 text-[#c2c6d4]">
+                               <CheckCircle className="w-4 h-4" />
+                               <span className="text-[10px] font-black uppercase tracking-widest">Handed Over</span>
+                            </div>
                           )}
                         </TableCell>
                       </TableRow>

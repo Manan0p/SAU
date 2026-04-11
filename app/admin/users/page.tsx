@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Users, Search, UserCog, RefreshCw, Shield, Fingerprint, ShieldAlert, ArrowRight } from "lucide-react";
+import { Users, Search, UserCog, RefreshCw, Shield, Fingerprint, ShieldAlert, Mail, MapPin, X, Phone, User as UserIcon, Activity } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { formatDate, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ToastProvider";
-import { useAuth } from "@/hooks/useAuth";
-import Link from "next/link";
-import { Mail } from "lucide-react";
 
 type UserRole = "student" | "doctor" | "pharmacy" | "admin" | "insurance" | "medical_center";
 
@@ -28,7 +24,12 @@ interface Profile {
   email: string;
   roles: UserRole[];
   college_id?: string;
-  created_at?: string;
+  phone?: string;
+  class?: string;
+  branch?: string;
+  batch?: string;
+  blood_group?: string;
+  medical_conditions?: string;
 }
 
 export default function AdminUsersPage() {
@@ -36,19 +37,19 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
+  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Get the current session token to authenticate the admin API call
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         throw new Error("No active session. Please log in again.");
       }
 
-      // Use the secure server-side API endpoint (uses service_role key, bypasses RLS)
       const res = await fetch("/api/admin/roles", {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
@@ -76,12 +77,15 @@ export default function AdminUsersPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = users.filter(
-    (u) =>
+  const filtered = users.filter((u) => {
+    const matchesSearch = 
       u.name?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase()) ||
-      u.college_id?.toLowerCase().includes(search.toLowerCase())
-  );
+      u.college_id?.toLowerCase().includes(search.toLowerCase());
+      
+    const matchesRole = filterRole === "all" || u.roles?.includes(filterRole);
+    return matchesSearch && matchesRole;
+  });
 
   const stats = {
     total: users.length,
@@ -92,6 +96,89 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen pb-20 p-10 max-w-7xl mx-auto space-y-10" style={{ background: "#f7f9fb" }}>
+      {/* Detailed Modal */}
+      {selectedUser && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" style={{ background: "rgba(25, 28, 30, 0.4)", backdropFilter: "blur(12px)" }}>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-[#eceef0] shadow-[0_24px_48px_rgba(25,28,30,0.15)] animate-in fade-in zoom-in-95 duration-300">
+               <div className="relative p-10">
+                  <button onClick={() => setSelectedUser(null)} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-[#f2f4f6] flex items-center justify-center text-[#727783] hover:text-[#191c1e] hover:bg-[#eceef0] transition-colors">
+                     <X className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="flex items-center gap-6 mb-8">
+                     <div className="w-20 h-20 rounded-3xl bg-[#00478d] flex items-center justify-center text-white text-3xl font-black shadow-[0_8px_24px_rgba(0,71,141,0.25)] border-[3px] border-[#cae2fe]">
+                       {selectedUser.name?.slice(0, 1).toUpperCase() ?? "?"}
+                     </div>
+                     <div>
+                        <h2 className="text-3xl font-extrabold text-[#191c1e] tracking-tight">{selectedUser.name}</h2>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                           {(selectedUser.roles ?? []).map((r) => {
+                             const style = ROLE_STYLES[r] ?? { bg: "bg-[#f2f4f6]", text: "text-[#727783]", border: "border-[#eceef0]", label: r };
+                             return (
+                               <div key={r} className={cn("text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-xl border flex items-center gap-1.5 shadow-sm", style.bg, style.text, style.border)}>
+                                 <div className={cn("w-1.5 h-1.5 rounded-full", r === 'admin' ? "bg-red-500" : "bg-current")} />
+                                 {style.label}
+                               </div>
+                             );
+                           })}
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="space-y-6">
+                        <div>
+                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#727783] mb-3 flex items-center gap-2"><UserIcon className="w-3.5 h-3.5" /> Contact Info</p>
+                           <div className="space-y-2">
+                              <p className="text-sm font-bold text-[#191c1e] bg-[#fcfdfe] border border-[#eceef0] p-3 rounded-xl flex items-center gap-3">
+                                 <Mail className="w-4 h-4 text-[#00478d]" /> {selectedUser.email || "—"}
+                              </p>
+                              <p className="text-sm font-bold text-[#191c1e] bg-[#fcfdfe] border border-[#eceef0] p-3 rounded-xl flex items-center gap-3">
+                                 <Phone className="w-4 h-4 text-[#00478d]" /> {selectedUser.phone || "—"}
+                              </p>
+                           </div>
+                        </div>
+
+                        <div>
+                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#727783] mb-3 flex items-center gap-2"><MapPin className="w-3.5 h-3.5" /> Academic Info</p>
+                           <div className="space-y-2">
+                              <p className="text-sm font-bold text-[#191c1e] bg-[#fcfdfe] border border-[#eceef0] p-3 rounded-xl flex justify-between">
+                                 <span className="text-[#727783]">ID / Col Badge</span> {selectedUser.college_id || "—"}
+                              </p>
+                              <p className="text-sm font-bold text-[#191c1e] bg-[#fcfdfe] border border-[#eceef0] p-3 rounded-xl flex justify-between">
+                                 <span className="text-[#727783]">Class / Year</span> {selectedUser.class || "—"}
+                              </p>
+                              <p className="text-sm font-bold text-[#191c1e] bg-[#fcfdfe] border border-[#eceef0] p-3 rounded-xl flex justify-between">
+                                 <span className="text-[#727783]">Branch</span> {selectedUser.branch || "—"}
+                              </p>
+                              <p className="text-sm font-bold text-[#191c1e] bg-[#fcfdfe] border border-[#eceef0] p-3 rounded-xl flex justify-between">
+                                 <span className="text-[#727783]">Batch</span> {selectedUser.batch || "—"}
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#727783] mb-3 flex items-center gap-2"><Activity className="w-3.5 h-3.5" /> Health Profile</p>
+                        <div className="space-y-4">
+                           <div className="bg-[#fff0f4] border border-[#ffdce6] p-5 rounded-2xl">
+                              <p className="text-[11px] font-black uppercase tracking-widest text-[#ba1a1a] mb-1">Blood Group</p>
+                              <p className="text-3xl font-black text-[#ba1a1a]">{selectedUser.blood_group || "Unknown"}</p>
+                           </div>
+                           <div className="bg-[#f2f4f6] border border-[#eceef0] p-5 rounded-2xl">
+                              <p className="text-[11px] font-black uppercase tracking-widest text-[#4a6078] mb-2">Medical Conditions</p>
+                              <p className="text-sm font-bold text-[#191c1e] leading-relaxed">
+                                {selectedUser.medical_conditions || "None reported."}
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-5">
@@ -135,28 +222,31 @@ export default function AdminUsersPage() {
 
       {/* Controls Area */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="relative w-full max-w-md group">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#c2c6d4] group-focus-within:text-[#00478d] transition-colors" />
-          <Input
-            placeholder="Search by name, email, or college ID…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-12 h-14 rounded-2xl bg-white border-[#eceef0] focus:ring-[#00478d]/10 focus:border-[#00478d] font-bold text-[#191c1e] shadow-sm transition-all placeholder:text-[#c2c6d4] placeholder:font-medium"
-          />
+        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+          <div className="relative w-full md:w-96 group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#c2c6d4] group-focus-within:text-[#00478d] transition-colors" />
+            <Input
+              placeholder="Search directory..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-12 h-14 rounded-2xl bg-white border-[#eceef0] focus:ring-[#00478d]/10 focus:border-[#00478d] font-bold text-[#191c1e] shadow-sm transition-all placeholder:text-[#c2c6d4] placeholder:font-medium"
+            />
+          </div>
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value as UserRole | "all")}
+            className="h-14 px-5 bg-white border border-[#eceef0] rounded-2xl text-sm font-bold text-[#424752] focus:outline-none focus:ring-2 focus:ring-[#00478d]/10 focus:border-[#00478d] transition-all shadow-sm cursor-pointer"
+          >
+             <option value="all">All Roles</option>
+             <option value="student">Students</option>
+             <option value="doctor">Doctors</option>
+             <option value="pharmacy">Pharmacy</option>
+             <option value="insurance">Insurance</option>
+             <option value="medical_center">Medical Center</option>
+             <option value="admin">Admins</option>
+          </select>
         </div>
       </div>
-
-      {/* Error banner */}
-      {error && (
-        <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#fef2f2] border border-[#fee2e2] text-[#dc2626]">
-          <ShieldAlert className="w-5 h-5 shrink-0" />
-          <div className="flex-1">
-            <p className="font-black text-sm">Access Restricted</p>
-            <p className="text-xs font-semibold mt-0.5 text-[#dc2626]/80">{error}</p>
-          </div>
-          <button onClick={load} className="text-xs font-black uppercase tracking-widest hover:underline">Retry</button>
-        </div>
-      )}
 
       {/* Main List Area */}
       <div className="bg-white rounded-[2.5rem] border border-[#eceef0] shadow-[0_4px_24px_rgba(25,28,30,0.06)] overflow-hidden">
@@ -196,7 +286,11 @@ export default function AdminUsersPage() {
           ) : (
             <div className="divide-y divide-[#eceef0]">
               {filtered.map((u) => (
-                <div key={u.id} className="flex flex-col md:flex-row md:items-center gap-6 px-10 py-6 hover:bg-[#f7f9fb] transition-all group border-l-[3px] border-l-transparent hover:border-l-[#00478d]">
+                <div 
+                   key={u.id} 
+                   onClick={() => setSelectedUser(u)}
+                   className="flex flex-col md:flex-row md:items-center gap-6 px-10 py-6 hover:bg-[#f7f9fb] transition-all group border-l-[3px] border-l-transparent hover:border-l-[#00478d] cursor-pointer"
+                >
                   <div className="w-16 h-16 rounded-2xl bg-[#f2f4f6] flex items-center justify-center text-[#00478d] text-xl font-black shrink-0 border border-[#eceef0] group-hover:bg-white shadow-sm transition-all group-hover:scale-105 duration-300">
                     {u.name?.slice(0, 1).toUpperCase() ?? "?"}
                   </div>
@@ -215,9 +309,6 @@ export default function AdminUsersPage() {
                             <Fingerprint className="w-3.5 h-3.5 opacity-40" /> {u.college_id}
                          </span>
                        )}
-                       <span className="text-[10px] text-[#c2c6d4] font-bold">
-                          Joined {formatDate(u.created_at || "")}
-                       </span>
                     </div>
                   </div>
 

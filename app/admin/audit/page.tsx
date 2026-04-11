@@ -1,9 +1,50 @@
 "use client";
 
-import { FileText, Shield, Clock, ShieldCheck, Activity, ArrowRight, Fingerprint, Lock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState, useCallback } from "react";
+import { Activity, ShieldCheck, Fingerprint, ShieldAlert, RefreshCw, FileSearch } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { formatDate } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+
+type AuditLog = {
+  id: string;
+  actorId: string;
+  action: string;
+  target: string;
+  targetId: string;
+  details: any;
+  created_at: string;
+  profiles?: { name: string; email: string };
+};
 
 export default function AdminAuditPage() {
+  const { isInitialized, hasRole } = useAuth();
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+    // Admin has access to audit_logs due to RLS policies
+    const { data, error } = await supabase
+      .from("audit_logs")
+      .select(`
+        *,
+        profiles:actorId(name, email)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setLogs(data as any);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized && hasRole("admin")) {
+      fetchLogs();
+    }
+  }, [isInitialized, hasRole, fetchLogs]);
+
   return (
     <div className="min-h-screen pb-20 p-10 max-w-7xl mx-auto space-y-10" style={{ background: "#f7f9fb" }}>
       {/* Header */}
@@ -19,61 +60,86 @@ export default function AdminAuditPage() {
               </p>
            </div>
         </div>
+        
+        <button
+          onClick={fetchLogs}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-2xl border border-[#eceef0] bg-white text-[#424752] hover:text-[#00478d] hover:bg-[#f7f9fb] text-xs font-black uppercase tracking-widest transition-all shadow-sm disabled:opacity-50"
+          disabled={loading}
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
       </div>
 
-      {/* Main Status Area */}
-      <Card className="rounded-[2.5rem] border-[#eceef0] shadow-[0_4px_24px_rgba(25,28,30,0.06)] overflow-hidden bg-white">
-        <CardContent className="py-24 text-center relative overflow-hidden">
-           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00478d] via-[#3b82f6] to-[#00478d] opacity-20" />
-           
-           <div className="w-24 h-24 rounded-3xl bg-[#f7f9fb] border border-[#eceef0] flex items-center justify-center mx-auto mb-8 shadow-sm group">
-              <Clock className="w-10 h-10 text-[#00478d] animate-pulse" />
+      <div className="bg-white rounded-[2.5rem] border border-[#eceef0] shadow-[0_4px_24px_rgba(25,28,30,0.06)] overflow-hidden">
+        <div className="px-10 py-8 border-b border-[#eceef0] flex items-center justify-between bg-[#fcfdfe]">
+           <div className="flex items-center gap-3">
+              <ShieldCheck className="w-5 h-5 text-[#00478d]" />
+              <h3 className="text-lg font-extrabold text-[#191c1e]" style={{ fontFamily: 'var(--font-manrope)' }}>
+                 System Events <span className="text-[#c2c6d4] font-bold ml-2">({logs.length})</span>
+              </h3>
            </div>
-           
-           <h2 className="text-3xl font-black text-[#191c1e] mb-4" style={{ fontFamily: 'var(--font-manrope)' }}>Archive Synchronization</h2>
-           <p className="text-[#727783] max-w-md mx-auto text-sm font-medium leading-relaxed">
-             The immutable audit trail is currently being indexed for the final portal integration. Once active, it will capture all granular interactions including clinical record access and role elevations.
-           </p>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#16a34a] flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse" />
+              Monitoring Active
+           </span>
+        </div>
 
-           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-             {[
-               { icon: Lock, label: "Login Vectors", color: "#00478d", bg: "#d6e3ff", border: "#cae2fe" },
-               { icon: Fingerprint, label: "Role Shifts", color: "#7c3aed", bg: "#f5f3ff", border: "#ede9fe" },
-               { icon: ShieldCheck, label: "Decisions", color: "#16a34a", bg: "#f0fdf4", border: "#dcfce7" },
-             ].map(({ icon: Icon, label, color, bg, border }) => (
-               <div key={label} className="p-6 rounded-2xl bg-[#fcfdfe] border border-[#eceef0] transition-all hover:shadow-lg hover:-translate-y-1 group">
-                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 border transition-transform group-hover:scale-110 mx-auto" style={{ background: bg, borderColor: border }}>
-                    <Icon className="w-5 h-5" style={{ color }} />
-                 </div>
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#727783] mb-1">{label}</p>
-                 <p className="text-xs font-bold text-[#191c1e]">Real-time Stream</p>
-               </div>
-             ))}
-           </div>
-
-           <div className="mt-16 flex items-center justify-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-[#c2c6d4]">
-              <div className="w-2 h-2 rounded-full bg-[#16a34a] animate-ping" />
-              Monitoring Infrastructure Node: AF-240
-           </div>
-        </CardContent>
-      </Card>
-
-      <div className="p-10 bg-[#00478d] rounded-[3rem] text-white shadow-2xl shadow-[#00478d]/20 relative overflow-hidden group">
-         <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="flex items-center gap-6">
-               <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-8 h-8 text-[#f0fdf4]" />
-               </div>
-               <div>
-                  <h4 className="text-xl font-extrabold tracking-tight" style={{ fontFamily: 'var(--font-manrope)' }}>Security Compliance Active</h4>
-                  <p className="text-sm text-white/50 mt-1 font-medium italic">All background events are currently being logged successfully.</p>
-               </div>
+        <div className="overflow-hidden min-h-[400px]">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32 gap-5">
+              <div className="w-12 h-12 border-4 border-[#00478d] border-t-transparent rounded-full animate-spin" />
+              <p className="text-[#727783] text-[10px] font-black uppercase tracking-[0.3em]">Querying Ledger...</p>
             </div>
-            <button className="shrink-0 flex items-center gap-3 px-8 py-4 rounded-2xl bg-white text-[#00478d] hover:bg-[#d6e3ff] transition-all font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/10">
-               Generate Report <ArrowRight className="w-4 h-4" />
-            </button>
-         </div>
+          ) : logs.length === 0 ? (
+            <div className="py-32 text-center bg-[#fcfdfe] relative">
+               <div className="w-20 h-20 rounded-full bg-[#f7f9fb] flex items-center justify-center mx-auto mb-6 border-2 border-dashed border-[#eceef0]">
+                  <FileSearch className="w-8 h-8 text-[#c2c6d4]" />
+               </div>
+               <p className="text-[#191c1e] text-xl font-extrabold" style={{ fontFamily: 'var(--font-manrope)' }}>
+                 Ledger Empty
+               </p>
+               <p className="text-[#727783] text-xs mt-2 font-bold uppercase tracking-widest opacity-80">
+                 No auditable events found
+               </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-[#eceef0]">
+              {logs.map((log) => (
+                <div key={log.id} className="flex flex-col md:flex-row md:items-center gap-6 px-10 py-6 hover:bg-[#f7f9fb] transition-all group border-l-[3px] border-l-transparent hover:border-l-[#00478d]">
+                  <div className="w-12 h-12 rounded-xl bg-[#f5f3ff] text-[#7c3aed] flex items-center justify-center shrink-0 border border-[#ede9fe] shadow-sm">
+                    <Fingerprint className="w-5 h-5" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                       <p className="font-extrabold text-[#191c1e] text-base" style={{ fontFamily: 'var(--font-manrope)' }}>
+                         {log.action}
+                       </p>
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-[#eceef0]/60 px-2.5 py-1 rounded-lg border border-[#eceef0] text-[#727783]">
+                         {log.target}
+                       </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                       <span className="text-sm font-semibold text-[#00478d]">
+                         {log.profiles?.name || log.actorId}
+                       </span>
+                       <span className="text-xs font-bold text-[#c2c6d4] uppercase tracking-widest">
+                         • {formatDate(log.created_at)}
+                       </span>
+                    </div>
+                    {/* Render JSON Details gracefully */}
+                    {log.details && (
+                       <pre className="mt-3 text-xs bg-[#f2f4f6] text-[#4a6078] p-3 rounded-xl overflow-x-auto border border-[#eceef0] font-mono leading-relaxed">
+                          {JSON.stringify(log.details, null, 2)}
+                       </pre>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

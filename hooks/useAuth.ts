@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { loginUser, loginStaffUser, loginAdminUser, loginWithGoogle, loadSession, clearSession } from "@/lib/auth";
+import { loginUser, loginStaffUser, loginAdminUser, loginWithGoogle, loadSession, clearSession, requestPasswordReset, updatePassword } from "@/lib/auth";
 import type { AuthState, UserRole } from "@/types";
 
 export const useAuth = create<AuthState>((set, get) => ({
@@ -75,5 +75,15 @@ export const useAuth = create<AuthState>((set, get) => ({
   hasRole: (role: UserRole) => {
     const { user } = get();
     return user?.roles?.includes(role) ?? false;
+  },
+
+  /** Request password reset email */
+  resetPassword: async (email: string) => {
+    return requestPasswordReset(email);
+  },
+
+  /** Update current user password (used after recovery) */
+  changePassword: async (newPassword: string) => {
+    return updatePassword(newPassword);
   },
 }));

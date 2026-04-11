@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   UserCircle,
   Stethoscope,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ToastProvider";
@@ -77,22 +78,28 @@ export default function Sidebar() {
       {/* ── Navigation ───────────────────── */}
       <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
-          const active = pathname === href || pathname.startsWith(href);
+          const isActive = pathname === href || (
+            pathname.startsWith(href + "/") && 
+            !NAV_ITEMS.some(item => 
+              item.href !== href && 
+              item.href.length > href.length && 
+              (pathname === item.href || pathname.startsWith(item.href + "/"))
+            )
+          );
           return (
             <Link
               key={href}
               href={href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                active
-                  ? "text-white"
+                isActive
+                  ? "text-white shadow-[0_4px_12px_rgba(0,71,141,0.2)]"
                   : "text-[#424752] hover:text-[#191c1e] hover:bg-[#eceef0]"
               )}
               style={
-                active
+                isActive
                   ? {
                       background: "linear-gradient(135deg, #00478d, #005eb8)",
-                      boxShadow: "0 4px 12px rgba(0,94,184,0.25)",
                     }
                   : {}
               }
@@ -124,18 +131,34 @@ export default function Sidebar() {
         style={{ borderTop: "1px solid rgba(194,198,212,0.2)" }}
       >
         {/* Notifications */}
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
-          <NotificationBell userId={user?.id ?? ""} />
-          <span className="text-sm font-medium" style={{ color: "#424752" }}>Notifications</span>
-        </div>
+        <NotificationBell userId={user?.id ?? ""} variant="row" />
+
+        {/* Settings */}
+        <Link
+          href="/settings"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors group",
+            (pathname === "/settings" || (pathname.startsWith("/settings") && pathname !== "/settings/profile" && pathname !== "/settings/security"))
+              ? "bg-[#eceef0] text-[#191c1e]" 
+              : "text-[#727783] hover:bg-[#eceef0] hover:text-[#191c1e]"
+          )}
+        >
+          <div className={cn("w-8 h-8 flex items-center justify-center shrink-0 rounded-lg transition-colors", (pathname === "/settings" || (pathname.startsWith("/settings") && pathname !== "/settings/profile")) ? "bg-[#00478d]/10" : "group-hover:bg-[#00478d]/10")}>
+            <Settings className={cn("w-4 h-4 shrink-0 transition-transform group-hover:rotate-45", (pathname === "/settings" || (pathname.startsWith("/settings") && pathname !== "/settings/profile")) ? "text-[#00478d]" : "")} />
+          </div>
+          <span className="text-sm font-medium">Settings</span>
+        </Link>
 
         {/* User profile */}
         <Link
-          href="/student/profile"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#eceef0] transition-colors group"
+          href="/settings/profile"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors group",
+            pathname === "/settings/profile" ? "bg-[#eceef0]" : "hover:bg-[#eceef0]"
+          )}
         >
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm"
             style={{ background: "linear-gradient(135deg, #4a6078, #00478d)" }}
           >
             {initials}
@@ -147,7 +170,7 @@ export default function Sidebar() {
             >
               {user?.name ?? "Student"}
             </p>
-            <p className="text-xs truncate mt-0.5" style={{ color: "#727783" }}>
+            <p className="text-[10px] truncate mt-1 font-medium" style={{ color: "#727783" }}>
               {user?.email ?? ""}
             </p>
           </div>
@@ -159,7 +182,9 @@ export default function Sidebar() {
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-[#ffdad6] group"
           style={{ color: "#727783" }}
         >
-          <LogOut className="w-4 h-4 shrink-0 group-hover:text-[#ba1a1a]" />
+          <div className="w-8 h-8 flex items-center justify-center shrink-0 rounded-lg group-hover:bg-[#ba1a1a]/10">
+            <LogOut className="w-4 h-4 shrink-0 group-hover:text-[#ba1a1a]" />
+          </div>
           <span className="group-hover:text-[#ba1a1a]">Sign out</span>
         </button>
       </div>

@@ -12,7 +12,7 @@ const TYPE_COLORS: Record<string, string> = {
   general: "bg-[#F2F4F6] border-[#E6E8EA] text-[#424752]",
 };
 
-export function NotificationBell({ userId }: { userId: string }) {
+export function NotificationBell({ userId, variant = "icon" }: { userId: string; variant?: "icon" | "row" }) {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications(userId);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -30,18 +30,37 @@ export function NotificationBell({ userId }: { userId: string }) {
 
   return (
     <div className="relative" ref={panelRef}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="relative p-1.5 rounded-lg text-[#727783] hover:text-[#191C1E] hover:bg-[#F2F4F6] transition-colors"
-        aria-label="Notifications"
-      >
-        <Bell className="w-4 h-4" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </button>
+      {variant === "row" ? (
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-[#eceef0] text-[#727783] hover:text-[#191c1e] group"
+        >
+          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+            <div className="relative">
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 rounded-full text-white text-[8px] font-bold flex items-center justify-center border-2 border-white">
+                  {unreadCount > 9 ? "!" : unreadCount}
+                </span>
+              )}
+            </div>
+          </div>
+          <span>Notifications</span>
+        </button>
+      ) : (
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="relative p-1.5 rounded-lg text-[#727783] hover:text-[#191C1E] hover:bg-[#F2F4F6] transition-colors"
+          aria-label="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </button>
+      )}
 
       {open && (
         <div className="absolute left-10 bottom-10 w-80 bg-white border border-[#E6E8EA] rounded-2xl shadow-[0_8px_32px_rgba(25,28,30,0.10)] overflow-hidden z-50">

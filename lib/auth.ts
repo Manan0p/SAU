@@ -162,3 +162,27 @@ export async function updateProfile(
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
+// ─── Password Recovery ─────────────────────────────────────────
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/reset-password`,
+    });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+export async function updatePassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: (error as Error).message };
+  }
+}

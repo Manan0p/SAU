@@ -18,7 +18,7 @@ async function fetchProfilesWithSchemaFallback(adminClient: ReturnType<typeof cr
       query: () =>
         adminClient
           .from("profiles")
-          .select("id, name, email, roles, college_id, created_at")
+          .select("*")
           .order("created_at", { ascending: false }),
     },
     {
@@ -26,7 +26,7 @@ async function fetchProfilesWithSchemaFallback(adminClient: ReturnType<typeof cr
       query: () =>
         adminClient
           .from("profiles")
-          .select("id, name, email, roles, college_id, createdAt")
+          .select("*")
           .order("createdAt", { ascending: false }),
     },
     {
@@ -34,7 +34,7 @@ async function fetchProfilesWithSchemaFallback(adminClient: ReturnType<typeof cr
       query: () =>
         adminClient
           .from("profiles")
-          .select("id, name, email, roles, college_id"),
+          .select("*"),
     },
   ] as const;
 
@@ -55,6 +55,12 @@ async function fetchProfilesWithSchemaFallback(adminClient: ReturnType<typeof cr
             : typeof u.createdAt === "string"
               ? u.createdAt
               : undefined,
+        phone: typeof u.phone === "string" ? u.phone : undefined,
+        class: typeof u.class === "string" ? u.class : undefined,
+        branch: typeof u.branch === "string" ? u.branch : undefined,
+        batch: typeof u.batch === "string" ? u.batch : undefined,
+        blood_group: typeof u.blood_group === "string" ? u.blood_group : undefined,
+        medical_conditions: typeof u.medical_conditions === "string" ? u.medical_conditions : undefined,
       }));
 
       return { users: normalized, mode: attempt.label, error: null };
