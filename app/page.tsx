@@ -37,7 +37,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#eceef0] shadow-sm mb-8">
             <span className="w-2 h-2 rounded-full bg-[#005eb8] animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-widest text-[#4a6078]">SAU Campus Healthcare Layer</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#4a6078]">Campus Healthcare Layer</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-[#191c1e] mb-6 tracking-tight leading-tight" style={{ fontFamily: 'var(--font-manrope)' }}>
             Your Unified Campus <br />
