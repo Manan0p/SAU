@@ -60,11 +60,6 @@ export default function LandingPage() {
                 View Subscription Model
               </button>
             </Link>
-            <a href="#features">
-              <button className="w-full sm:w-auto px-8 py-4 rounded-[1rem] text-base font-bold text-[#424752] bg-white border border-[#eceef0] shadow-[0_2px_12px_rgba(25,28,30,0.04)] hover:bg-[#f7f9fb] transition-all">
-                Learn More
-              </button>
-            </a>
           </div>
         </div>
       </section>
