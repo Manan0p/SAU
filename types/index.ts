@@ -181,6 +181,8 @@ export interface AuthState {
   initAuth: (force?: boolean) => Promise<void>;
   refreshUser: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  changePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 // ─────────────────────────────────────────────
