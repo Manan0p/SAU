@@ -2,7 +2,7 @@
 
 UniWell is a comprehensive, modern campus healthcare platform engineered for educational institutions. It connects students and medical staff seamlessly to minimize administration overhead and maximize care, featuring secure role-based portals, emergency SOS broadcasting, medical records management, and AI-assisted health inquiries.
 
-🌐 **Live Demo:** [https://sau-tau.vercel.app/](https://sau-tau.vercel.app/)
+🌐 **Live Demo:** [https://uniwell-ind.vercel.app/](https://uniwell-ind.vercel.app/)
 
 ---
 
@@ -217,4 +217,4 @@ Built by **team gooble**:
 - **Vercel** for hosting.
 - **Radix UI** & **Tailwind** for beautiful utility-driven styling.
 
-Ready to explore your complete campus health sanctuary? Visit [https://sau-tau.vercel.app/](https://sau-tau.vercel.app/) and log in.
+Ready to explore your complete campus health sanctuary? Visit [https://uniwell-ind.vercel.app/](https://uniwell-ind.vercel.app/) and log in.
