@@ -210,6 +210,7 @@ Built by **team gooble**:
 - Vibhuti
 - Minit
 - Bhumika
+- Rajat
 
 ## 🙏 Acknowledgments
 - **Supabase** for robust auth and PostgreSQL infrastructure.
